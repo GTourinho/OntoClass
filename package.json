@@ -48,6 +48,7 @@
         ]
     },
     "dependencies": {
-        "gapi-script": "^1.2.0"
+        "gapi-script": "^1.2.0",
+        "tree-model": "^1.0.7"
     }
 }
