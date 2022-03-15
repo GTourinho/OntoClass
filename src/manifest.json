@@ -5,7 +5,8 @@
   "author": "Gabriel Tourinho Badaró",
   "manifest_version": 2,
   "browser_action": {
-    "default_title": "OntoClass"
+    "default_title": "OntoClass",
+    "default_popup": "popup.html"
   },
   "background": {
     "page": "background.html"

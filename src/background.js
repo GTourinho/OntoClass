@@ -39,7 +39,7 @@ function gapi_loaded() {
     });
 
     // Manipulação da API
-    gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
+  /*  gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
 
       var courseWorks = response.result.courseWork;
 
@@ -59,7 +59,7 @@ function gapi_loaded() {
       console.log(node.model.name)
     });
 
-    });
+    }); */
   })
 
   return true;
