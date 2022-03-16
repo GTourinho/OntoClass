@@ -34520,7 +34520,7 @@ tree = new TreeModel(),
 competencias = tree.parse({name: 'competencias', level: 'black'});
 
 // Dimensoes e margens para a arvore
-const margin = {top: 20, right: 90, bottom: 30, left: 90},
+const margin = {top: 20, right: 90, bottom: 30, left: 130},
 width  = 660 - margin.left - margin.right,
 height = 500 - margin.top - margin.bottom;
 const treemap = d3.tree().size([height, width]);
