@@ -34,6 +34,15 @@ document.getElementById('add').addEventListener('click', () => {
   printArvore(competencias);
 });
 
+document.getElementById('del').addEventListener('click', () => {
+  var no = document.getElementById('no').value;
+  no = competencias.first(function (node) {
+    return node.model.name === no;});
+  no.drop();
+
+  printArvore(competencias);
+});
+
 function printArvore(treeData){
 
   // Update do SVG
