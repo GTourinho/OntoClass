@@ -1,6 +1,9 @@
 // Imports
-// var TreeModel = require('tree-model');
+var TreeModel = require('tree-model');
 var d3 = require('d3');
+
+tree = new TreeModel(),
+competencias = tree.parse({name: 'competencias', level: 'black'});
 
 // Dimensoes e margens para a arvore
 const margin = {top: 20, right: 90, bottom: 30, left: 90},
@@ -13,26 +16,23 @@ const svg = d3.select("body").append("svg")
 .attr("width", width + margin.left + margin.right)
 .attr("height", height + margin.top + margin.bottom)
 
-// Cria e manipula arvore
-const data = {
-  "name": "Comp",
-  "level": "black",
-  "children": [
-    {
-      "name": "A",
-      "level": "black"
-    },
+printArvore(competencias);
 
-  ]
-};
+document.getElementById('add').addEventListener('click', () => {
+  var no = document.getElementById('no').value;
+  var noPai = document.getElementById('no-pai').value
 
-data.children[0].children = [{"name": "B", "level": "black"}];
-data.children[0].children[0].children = [{"name": "D", "level": "black"}];
-data.children.push({"name": "C", "level": "black"});
-data.children.push({"name": "E", "level": "black"});
-printArvore(data);
-data.children.push({"name": "F", "level": "black"});
-printArvore(data);
+  if (noPai != ''){
+    var pai = competencias.first(function (node) {
+    return node.model.name === noPai;});
+    pai.addChild(tree.parse({name: no}))
+  }
+  else{
+    competencias.addChild(tree.parse({name: no}))
+  }
+
+  printArvore(competencias);
+});
 
 function printArvore(treeData){
 
@@ -44,6 +44,8 @@ function printArvore(treeData){
 
   //  Adiciona os dados para a hierarquia da arvore
   let nodes = d3.hierarchy(treeData, d => d.children);
+
+  console.log(nodes)
   nodes = treemap(nodes);
 
   // Links entre os nós
@@ -51,7 +53,7 @@ function printArvore(treeData){
   .data( nodes.descendants().slice(1))
   .enter().append("path")
   .attr("class", "link")
-  .style("stroke", d => d.data.level)
+  .style("stroke", d => d.data.model.level)
   .attr("d", d => {
   return "M" + d.y + "," + d.x
     + "C" + (d.y + d.parent.y) / 2 + "," + d.x
@@ -72,26 +74,5 @@ function printArvore(treeData){
   .attr("x", d => d.children ? 5 * -1 : 5)
   .attr("y", d => d.children && d.depth !== 0 ? - 8 : 0)
   .style("text-anchor", d => d.children ? "end" : "start")
-  .text(d => d.data.name);
+  .text(d => d.data.model.name);
 }
-
-/*tree = new TreeModel(),
-competencias = tree.parse({name: 'competencias'});
-
-document.getElementById('add').addEventListener('click', () => {
-  var no = document.getElementById('no').value;
-  var noPai = document.getElementById('no-pai').value
-
-  if (noPai != ''){
-    var pai = competencias.first(function (node) {
-    return node.model.name === noPai;});
-    pai.addChild(tree.parse({name: no}))
-  }
-  else{
-    competencias.addChild(tree.parse({name: no}))
-  }
-
-  competencias.walk(function (node) {
-    console.log(node.model.name)
-  });
-}); */
