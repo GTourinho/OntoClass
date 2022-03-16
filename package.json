@@ -52,6 +52,8 @@
         ]
     },
     "dependencies": {
+        "d3": "^7.3.0",
+        "d3-hierarchy": "^3.1.1",
         "gapi-script": "^1.2.0",
         "tree-model": "^1.0.7"
     }

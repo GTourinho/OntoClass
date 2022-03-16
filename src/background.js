@@ -31,7 +31,7 @@ function onGAPILoad() {
   });
 }
 
-function gapi_loaded() {
+export function gapi_loaded() {
   
   chrome.identity.getAuthToken({interactive: true}, function(token) {
     gapi.auth.setToken({
@@ -39,7 +39,7 @@ function gapi_loaded() {
     });
 
     // Manipulação da API
-  /*  gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
+    gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
 
       var courseWorks = response.result.courseWork;
 
@@ -47,19 +47,7 @@ function gapi_loaded() {
         console.log(courseWorks[i])
       }
 
-    tree = new TreeModel(),
-    root = tree.parse({name: 'a', children: [{name: 'b'}]});
-
-    var b = root.first(function (node) {
-    return node.model.name === 'b';});
-    
-    b.addChild(tree.parse({name: 'c'}))
-
-    root.walk({strategy: 'post'}, function (node) {
-      console.log(node.model.name)
     });
-
-    }); */
   })
 
   return true;

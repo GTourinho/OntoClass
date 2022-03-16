@@ -421,12 +421,46 @@ module.exports = (function () {
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
+"use strict";
 /*!***************************!*\
   !*** ./src/background.js ***!
   \***************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "gapi_loaded": () => (/* binding */ gapi_loaded)
+/* harmony export */ });
 // Imports
 var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
 
@@ -468,7 +502,7 @@ function gapi_loaded() {
     });
 
     // Manipulação da API
-  /*  gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
+    gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
 
       var courseWorks = response.result.courseWork;
 
@@ -476,19 +510,7 @@ function gapi_loaded() {
         console.log(courseWorks[i])
       }
 
-    tree = new TreeModel(),
-    root = tree.parse({name: 'a', children: [{name: 'b'}]});
-
-    var b = root.first(function (node) {
-    return node.model.name === 'b';});
-    
-    b.addChild(tree.parse({name: 'c'}))
-
-    root.walk({strategy: 'post'}, function (node) {
-      console.log(node.model.name)
     });
-
-    }); */
   })
 
   return true;
