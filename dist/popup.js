@@ -34539,10 +34539,10 @@ document.getElementById('add').addEventListener('click', () => {
   if (noPai != ''){
     var pai = competencias.first(function (node) {
     return node.model.name === noPai;});
-    pai.addChild(tree.parse({name: no}))
+    pai.addChild(tree.parse({name: no, level: 'black'}))
   }
   else{
-    competencias.addChild(tree.parse({name: no}))
+    competencias.addChild(tree.parse({name: no, level: 'black'}))
   }
 
   printArvore(competencias);
@@ -34552,8 +34552,29 @@ document.getElementById('del').addEventListener('click', () => {
   var no = document.getElementById('no').value;
   no = competencias.first(function (node) {
     return node.model.name === no;});
-  no.drop();
 
+  no.drop();
+  
+  printArvore(competencias);
+});
+
+document.getElementById('del+').addEventListener('click', () => {
+  var no = document.getElementById('no').value;
+  no = competencias.first(function (node) {
+    return node.model.name === no;});
+
+  path = no.getPath()
+  pai = path[path.length-2];
+  
+  if(pai.model.name != 'competencias'){
+    for(var i = 0; i < no.model.children.length; i++){
+      pai.addChild(tree.parse({name: no.model.children[i].name, level: 'black'}));
+    }
+  }
+
+
+  no.drop();
+  
   printArvore(competencias);
 });
 
@@ -34568,7 +34589,6 @@ function printArvore(treeData){
   //  Adiciona os dados para a hierarquia da arvore
   let nodes = d3.hierarchy(treeData, d => d.children);
 
-  console.log(nodes)
   nodes = treemap(nodes);
 
   // Links entre os nós
