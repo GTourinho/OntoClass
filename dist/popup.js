@@ -34553,6 +34553,13 @@ document.getElementById('del').addEventListener('click', () => {
   no = competencias.first(function (node) {
     return node.model.name === no;});
 
+  path = no.getPath()
+  pai = path[path.length-2];
+
+  for(var i = 0; i < no.model.children.length; i++){
+    pai.addChild(tree.parse({name: no.model.children[i].name, level: 'black'}));
+  }
+
   no.drop();
   
   printArvore(competencias);
@@ -34562,16 +34569,6 @@ document.getElementById('del+').addEventListener('click', () => {
   var no = document.getElementById('no').value;
   no = competencias.first(function (node) {
     return node.model.name === no;});
-
-  path = no.getPath()
-  pai = path[path.length-2];
-  
-  if(pai.model.name != 'competencias'){
-    for(var i = 0; i < no.model.children.length; i++){
-      pai.addChild(tree.parse({name: no.model.children[i].name, level: 'black'}));
-    }
-  }
-
 
   no.drop();
   
