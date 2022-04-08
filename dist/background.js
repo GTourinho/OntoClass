@@ -421,46 +421,12 @@ module.exports = (function () {
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-"use strict";
 /*!***************************!*\
   !*** ./src/background.js ***!
   \***************************/
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "gapi_loaded": () => (/* binding */ gapi_loaded)
-/* harmony export */ });
 // Imports
 var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
 
@@ -470,7 +436,6 @@ var script = document.createElement('script');
 script.type = 'text/javascript';
 script.src = "https://apis.google.com/js/client.js";
 head.appendChild(script);
-
 // Espera carregamento GAPI
 window.onload = function () {
   setTimeout(function () {
@@ -481,21 +446,21 @@ window.onload = function () {
 const API_KEY = 'AIzaSyD0S0AnY3gPu5xkeMWYbZpftsh_BOndE5s';
 const DISCOVERY_DOCS = ["https://classroom.googleapis.com/$discovery/rest?version=v1"];
 
-
 // Inicia a API do Classroom (Depois de carregar o GAPI)
 function onGAPILoad() {
+
   gapi.client.init({
     apiKey: API_KEY,
     discoveryDocs: DISCOVERY_DOCS,
   }).then(function () {
-    gapi_loaded();
+    console.log('gapi loaded')
   }, function(error) {
-    console.log('error', error)
+    console.log('error', error);
   });
 }
 
-function gapi_loaded() {
-  
+function getCourseWorks(tabid) {
+  var courseWorks;
   chrome.identity.getAuthToken({interactive: true}, function(token) {
     gapi.auth.setToken({
       'access_token': token,
@@ -503,18 +468,20 @@ function gapi_loaded() {
 
     // Manipulação da API
     gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
-
-      var courseWorks = response.result.courseWork;
-
-      for(var i = 0; i < courseWorks.length; i++){
-        console.log(courseWorks[i])
-      }
-
+    courseWorks = response.result.courseWork;
+    chrome.extension.sendMessage(tabid,courseWorks);
     });
   })
-
-  return true;
 }
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+
+  if (message.from == "popup"){
+      var tabid = sender.id;
+      getCourseWorks(tabid);
+  }
+  
+});
 })();
 
 /******/ })()

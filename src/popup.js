@@ -1,8 +1,15 @@
 // Imports
+
 var TreeModel = require('tree-model');
 var d3 = require('d3');
 
-tree = new TreeModel(),
+chrome.runtime.sendMessage({from:"popup",message:"teste!"});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  console.log(message);
+});
+
+var tree = new TreeModel(),
 competencias = tree.parse({name: 'competencias', level: 'black'});
 
 // Dimensoes e margens para a arvore
@@ -65,7 +72,7 @@ function printArvore(treeData){
 
   // Update do SVG
   d3.selectAll("svg > *").remove();  
-  g = svg.append("g")
+  var g = svg.append("g")
   .attr("transform",
       "translate(" + margin.left + "," + margin.top + ")");
 

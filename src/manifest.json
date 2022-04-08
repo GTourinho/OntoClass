@@ -13,7 +13,7 @@
   },
   "content_security_policy": "script-src 'self' https://apis.google.com/; object-src 'self'",
   "oauth2": {
-    "client_id": "156461501547-82i9ch5vvcs1jni6vkrapbpfj1scef0m.apps.googleusercontent.com",
+    "client_id": "156461501547-rhgrf8mbm189vqlhke9q4l3rrhjbptr7.apps.googleusercontent.com",
     "scopes":["https://www.googleapis.com/auth/classroom.courses.readonly", "https://www.googleapis.com/auth/classroom.coursework.students"]
   },
   "permissions": [
