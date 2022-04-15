@@ -48,6 +48,10 @@
             {
                 "name": "popup",
                 "src": "./src/popup.js"
+            },
+            {
+                "name": "competencies",
+                "src": "./src/competencies.js"
             }
         ]
     },
