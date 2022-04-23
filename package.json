@@ -52,6 +52,10 @@
             {
                 "name": "competencies",
                 "src": "./src/competencies.js"
+            },
+            {
+                "name": "students",
+                "src": "./src/students.js"
             }
         ]
     },

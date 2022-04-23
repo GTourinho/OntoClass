@@ -459,7 +459,7 @@ function onGAPILoad() {
   });
 }
 
-function getCourseWorks(tabid) {
+function getStudents(tabid) {
   var courseWorks;
   chrome.identity.getAuthToken({interactive: true}, function(token) {
     gapi.auth.setToken({
@@ -467,18 +467,18 @@ function getCourseWorks(tabid) {
     });
 
     // Manipulação da API
-    gapi.client.classroom.courses.courseWork.list({courseId: '412519657549'}).then(function(response) {
-    courseWorks = response.result.courseWork;
-    chrome.extension.sendMessage(tabid,courseWorks);
+    gapi.client.classroom.courses.students.list({courseId: '412519657549'}).then(function(response) {
+    students = response.result.students;
+    chrome.extension.sendMessage(tabid,students);
     });
   })
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
-  if (message.from == "popup"){
+  if (message.from == "students"){
       var tabid = sender.id;
-      getCourseWorks(tabid);
+      getStudents(tabid);
   }
   
 });
