@@ -56,6 +56,10 @@
             {
                 "name": "students",
                 "src": "./src/students.js"
+            },
+            {
+                "name": "course",
+                "src": "./src/course.js"
             }
         ]
     },
