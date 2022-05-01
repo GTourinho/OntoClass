@@ -19,6 +19,7 @@
       "https://www.googleapis.com/auth/classroom.rosters"]
   },
   "permissions": [
+    "storage",
     "identity"
   ],
   "key": "lkpipbnkjilinaihbonhenapjppokioi"

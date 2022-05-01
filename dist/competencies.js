@@ -34513,31 +34513,35 @@ var __webpack_exports__ = {};
   !*** ./src/competencies.js ***!
   \*****************************/
 // Imports
-
 var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
 var d3 = __webpack_require__(/*! d3 */ "./node_modules/d3/src/index.js");
 
-chrome.runtime.sendMessage({from:"popup",message:"teste!"});
+// Variaveis
+var tree = new TreeModel();
+var competencias;
 
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-  console.log(message);
-});
-
-var tree = new TreeModel(),
-competencias = tree.parse({name: 'competencias', level: 'black'});
-
-// Dimensoes e margens para a arvore
+// Dimensoes e margens (impressao da arvore)
 const margin = {top: 20, right: 90, bottom: 30, left: 130},
 width  = 660 - margin.left - margin.right,
 height = 500 - margin.top - margin.bottom;
 const treemap = d3.tree().size([height, width]);
 
-// Adiciona SVG para a arvore
+// Adiciona SVG no documento (impressao da arvore)
 const svg = d3.select("body").append("svg")
 .attr("width", width + margin.left + margin.right)
 .attr("height", height + margin.top + margin.bottom)
 
-printArvore(competencias);
+// Pega a arvore no armazenamento, e imprime
+chrome.storage.local.get(['comp'], function(data) {
+  if(data.comp == null){
+    competencias = tree.parse({name: 'competencias', level: 'black'});
+    chrome.storage.local.set({ comp: competencias })
+  }
+  else{
+    competencias = tree.parse(data.comp.model);
+  }
+  printArvore(competencias);
+});
 
 document.getElementById('add').addEventListener('click', () => {
   var no = document.getElementById('no').value;
@@ -34584,6 +34588,8 @@ document.getElementById('del+').addEventListener('click', () => {
 
 function printArvore(treeData){
 
+  chrome.storage.local.set({ comp: treeData });
+
   // Update do SVG
   d3.selectAll("svg > *").remove();  
   var g = svg.append("g")
@@ -34615,7 +34621,7 @@ function printArvore(treeData){
   .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
   .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
-  // Adiciona texto ao nó
+  // Texto do nó
   node.append("text")
   .attr("dy", ".35em")
   .attr("x", d => d.children ? 5 * -1 : 5)
