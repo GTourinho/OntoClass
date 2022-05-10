@@ -64,9 +64,15 @@
         ]
     },
     "dependencies": {
+        "buffer": "^6.0.3",
         "d3": "^7.3.0",
         "d3-hierarchy": "^3.1.1",
+        "fs-extra": "^10.1.0",
         "gapi-script": "^1.2.0",
+        "n3": "^1.16.1",
         "tree-model": "^1.0.7"
+    },
+    "browser": {
+        "fs": false
     }
 }
