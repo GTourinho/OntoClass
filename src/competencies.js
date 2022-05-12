@@ -1,11 +1,10 @@
 // Imports
 var TreeModel = require('tree-model');
-var d3 = require('d3');
 const N3 = require('n3');
 
 // Variaveis
 var tree = new TreeModel();
-var competencias = tree.parse({name: 'competencias'});
+var competencias = tree.parse({name: ''});
 var ontology;
 var evidences = {}
 
@@ -188,11 +187,12 @@ function getCompetenciesFromOntology(){
         quadType(quad);
       }
       else{
-        console.log(competencias);
-        console.log(evidences);
+        
+        endOfParser();
+
       }
     });
-
+    
 }
 
 function quadType(quad){
@@ -201,14 +201,14 @@ function quadType(quad){
       // verifica se ja esta na arvore
       if(competencias.first(function (node) {
       return node.model.id === quad._subject.id;}) == null){
-        competencias.addChild(tree.parse({id: quad._subject.id}));
+        newCompetence(quad._subject.id);
       }
   }
   // has evidence
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasEvidence'){
     var comp = competencias.first(function (node) {
       return node.model.id === quad._subject.id;});
-    comp.model.evidence =  quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '');
+    comp.model.evidence.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' '));
   }
   // name
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#name'){
@@ -223,24 +223,25 @@ function quadType(quad){
     var parent = competencias.first(function (node) {
       return node.model.id === quad.object.id;});
     if(parent == null){
-      competencias.addChild(tree.parse({id: quad._object.id}));
+      newCompetence(quad._object.id);
       parent = competencias.first(function (node) {
         return node.model.id === quad.object.id;});
     }
     comp = comp.drop();
+    comp.model.subsumes = quad.object.id;
     parent.addChild(comp);
   }
   // hasSkill
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasSkill'){
     var comp = competencias.first(function (node) {
       return node.model.id === quad._subject.id;});
-    comp.model.skill =  quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, '');
+    comp.model.skill.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, ''));
   }
   // hasKnowledge
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasKnowledge'){
     var comp = competencias.first(function (node) {
       return node.model.id === quad._subject.id;});
-    comp.model.knowledge =  quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, '');
+    comp.model.knowledge.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, ''));
   }
   // hasProficiencyLevel
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasProficiencyLevel'){
@@ -252,21 +253,26 @@ function quadType(quad){
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'){
     var comp = competencias.first(function (node) {
       return node.model.id === quad._subject.id;});
-    comp.model.requires =  quad._object.id;
+    comp.model.requires.push(quad._object.id);
   }
   // isSimilarTo
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'){
     var comp = competencias.first(function (node) {
       return node.model.id === quad._subject.id;});
-    comp.model.similar =  quad._object.id;
+    comp.model.similar.push(quad._object.id);
   }
-
+  // isComposedOf
+  else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'){
+    var comp = competencias.first(function (node) {
+      return node.model.id === quad._subject.id;});
+    comp.model.composedOf.push(quad._object.id);
+  }
   // Evidencias:
 
   // is evidence
   else if(quad._object.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Evidence' && quad._predicate.id == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'){
     var id = quad._subject.id;
-    evidences[id] = {name : id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, '')};
+    evidences[id] = {name : id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')};
   }
   // source
   else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#source'){
@@ -274,3 +280,69 @@ function quadType(quad){
     evidences[id].source = quad._object.id;
   }
 }    
+
+function newCompetence(_id){
+  competencias.addChild(tree.parse({id: _id, name: '', evidence: [], subsumes: '', proficiencyLevel: '', requires: [], similar: [], skill: [], knowledge: [], composedOf: []}));
+}
+
+// Após o parser da ontologia
+function endOfParser(){
+  console.log(competencias);
+        console.log(evidences);
+
+        competencias.walk(function (node) {
+          if(node.model.name != ''){
+            // Elementos do nó
+            var comp = document.createElement("li");
+            comp.setAttribute('id', node.model.id);
+
+            // Caso a competência tenha filhos
+            if(node.hasChildren()){
+              // Adicionar caret
+              var span = document.createElement("span");
+              span.setAttribute("class","caret");
+              comp.appendChild(span);
+            }
+
+            // Adicionar texto
+            var texto = document.createElement('text');
+            texto.textContent = node.model.name;
+            comp.appendChild(texto);
+            
+            // Botão de editar competência
+            var _button = document.createElement("button");
+            _button.textContent = "Editar";
+            _button.setAttribute('class', 'edit');
+            comp.appendChild(_button);
+
+            // Caso a competência tenha filhos
+            if(node.hasChildren()){
+              // Adicionar espaço para os filhos
+              var nest = document.createElement("ul");
+              nest.setAttribute('class', 'nested');
+              comp.appendChild(nest);
+            }
+
+
+            // Encontrar o pai para o nó
+            if(node.model.subsumes == ''){
+              var parent = document.getElementById("myUL");
+            }
+            else{
+              var parent = document.getElementById(node.model.subsumes).getElementsByClassName("nested")[0];
+            }
+            parent.appendChild(comp);
+          }
+        });
+        
+        // Expansão e colapso de nó da árvore
+        var toggler = document.getElementsByClassName("caret");
+        var i;
+
+        for (i = 0; i < toggler.length; i++) {
+          toggler[i].addEventListener("click", function() {
+            this.parentElement.querySelector(".nested").classList.toggle("active");
+            this.classList.toggle("caret-down");
+          });
+        }
+}
