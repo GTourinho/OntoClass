@@ -20,7 +20,8 @@
   },
   "permissions": [
     "storage",
-    "identity"
+    "identity",
+    "unlimitedStorage"
   ],
   "key": "lkpipbnkjilinaihbonhenapjppokioi"
 }
