@@ -2,7 +2,17 @@
 var TreeModel = require('tree-model');
 const N3 = require('n3');
 
+
 // Variaveis
+const store = new N3.Store();
+const { DataFactory } = N3;
+const { namedNode, literal, defaultGraph, quad } = DataFactory;
+const myQuad = quad(
+  namedNode('https://ruben.verborgh.org/profile/#me'),
+  namedNode('http://xmlns.com/foaf/0.1/givenName'),
+  literal('Ruben', 'en'),
+  defaultGraph(),
+);
 var tree = new TreeModel();
 var competencias = tree.parse({name: ''});
 var evidences = [];
@@ -10,6 +20,7 @@ var subsume = document.getElementById("Subsume");
 var requisito = document.getElementById("Requisito");
 var similar = document.getElementById("Similar");
 var evidencia = document.getElementById("Evidencia");
+var proficiencia = document.getElementById("Proficiencia");
 
 chrome.runtime.sendMessage({from:"addcompetence",message:"hi!"});
 
@@ -27,6 +38,7 @@ function getCompetenciesFromOntology(ontology){
       (error, quad, prefixes) => {
         if (quad){
           quadType(quad);
+          store.add(quad);
         }
         else{
           
@@ -153,8 +165,111 @@ function getCompetenciesFromOntology(ontology){
     for (const evidence in evidences) {
         var ev = document.createElement("option");
         ev.textContent = evidence.replace("http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#", '').replace(/_/gi, ' ');
-        ev.value = evidence.source;
+        ev.value = evidence;
         evidencia.appendChild(ev);
       }
 
   };
+
+  document.getElementById('Salvar').addEventListener('click', () => {
+    var prefix1 = "http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#";
+    var sub = subsume.options[subsume.selectedIndex].value;
+    var req = requisito.options[requisito.selectedIndex].value;
+    var sim = similar.options[similar.selectedIndex].value;
+    var prf = proficiencia.options[proficiencia.selectedIndex].value;
+    var nm = document.getElementById('nome').value
+    var hab = document.getElementById('Habilidade').value
+    var con = document.getElementById('Conhecimento').value
+
+    if(prf == 'Iniciante'){
+      prf = 'Beginner';
+    }
+    else if(prf == 'Intermediário'){
+      prf = 'Intermediate';
+    }
+    else if(prf == 'Avançado'){
+      prf = 'Advanced';
+    }
+    else if(prf == 'Especialista'){
+      prf = 'Expert';
+    }
+
+    // Inicia o escritor da ontologia para string
+    const writer = new N3.Writer();
+  
+    for (const quad of store){
+      writer.addQuad(
+        quad
+      );
+    }
+
+    if(nm != ''){
+      writer.addQuad(
+        namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+        namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+        namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Competency')
+      );
+      writer.addQuad(
+        namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+        namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#name'),
+        literal(nm)
+      );
+      writer.addQuad(
+        namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+        namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasProficiencyLevel'),
+        namedNode(prf)
+      );
+      if(sub != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'),
+          namedNode(sub)
+        );
+      }
+      if(req != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'),
+          namedNode(req)
+        );
+      }
+      if(sim != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'),
+          namedNode(sim)
+        );
+      }
+      if(hab != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasSkill'),
+          literal(hab)
+        );
+      }
+      if(con != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasKnowledge'),
+          literal(con)
+        );
+      }
+      for (var option of evidencia.options){
+          if (option.selected) {
+            writer.addQuad(
+              namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+              namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasEvidence'),
+              namedNode(prefix1.concat(option.value).replace(/ /gi, '_'))
+            );
+          }
+      }
+    }
+  
+    writer.end((error, result) => saveOntologyAndReturn(result));
+
+  });
+
+  function saveOntologyAndReturn(ontology){
+    chrome.storage.local.set({'ont': ontology});
+    window.location.href = "./competencies.html";
+  }
