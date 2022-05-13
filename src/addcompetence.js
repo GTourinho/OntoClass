@@ -270,6 +270,6 @@ function getCompetenciesFromOntology(ontology){
   });
 
   function saveOntologyAndReturn(ontology){
-    chrome.storage.local.set({'ont': ontology});
+    chrome.runtime.sendMessage({from:"addcompetence", message: ontology});
     window.location.href = "./competencies.html";
   }
