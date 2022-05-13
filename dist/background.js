@@ -10739,6 +10739,7 @@ const myQuad = quad(
 // Variaveis
 var courseId = '';
 var ontology;
+var editCompId;
 
 // Google API
 var head = document.getElementsByTagName('head')[0];
@@ -10822,8 +10823,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 
   else if(message.from == "competencies"){
-    var tabid = sender.id;
-    getOntology(tabid);
+    if (message.message == "hi!"){
+      var tabid = sender.id;
+      getOntology(tabid);
+    }
+    else{
+      editCompId = message.message;
+    }
   }
 
   else if(message.from == "addcompetence"){
@@ -10834,6 +10840,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     else{
       chrome.storage.local.set({[courseId]: message.message});
     }
+  }
+  else if(message.from == "editcompetence"){
+      var tabid = sender.id;
+      chrome.extension.sendMessage(tabid,editCompId);
+      getOntology(tabid);
   }
   
 });
