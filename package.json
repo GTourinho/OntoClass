@@ -60,6 +60,10 @@
             {
                 "name": "course",
                 "src": "./src/course.js"
+            },
+            {
+                "name": "addcompetence",
+                "src": "./src/addcompetence.js"
             }
         ]
     },
