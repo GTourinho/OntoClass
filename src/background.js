@@ -68,6 +68,11 @@ function getCourses(tabid) {
       'access_token': token,
     });
 
+    if(gapi.client.classroom == null){
+      getCourses(tabid);
+      return;
+    }
+
     gapi.client.classroom.courses.list().then(function(response) {
     courses = response.result.courses;
     chrome.extension.sendMessage(tabid,courses);

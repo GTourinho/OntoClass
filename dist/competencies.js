@@ -10872,6 +10872,9 @@ function displayCompetencias(){
             var _button = document.createElement("button");
             _button.textContent = "Editar";
             _button.setAttribute('class', 'edit');
+            _button.addEventListener('click', () => {
+              window.location.href = "./editcompetence.html";
+            });
             comp.appendChild(_button);
 
             // Caso a competência tenha filhos

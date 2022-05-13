@@ -64,6 +64,10 @@
             {
                 "name": "addcompetence",
                 "src": "./src/addcompetence.js"
+            },
+            {
+                "name": "editcompetence",
+                "src": "./src/editcompetence.js"
             }
         ]
     },
