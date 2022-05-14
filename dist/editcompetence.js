@@ -10828,7 +10828,7 @@ function getCompetenciesFromOntology(ontology){
       (error, quad, prefixes) => {
         if (quad){
           quadType(quad);
-          store.add(quad);
+          store.addQuad(quad);
         }
         else{
           
@@ -10864,6 +10864,11 @@ function getCompetenciesFromOntology(ontology){
     else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'){
       var comp = competencias.first(function (node) {
         return node.model.id === quad._subject.id;});
+      if(comp == null){
+        newCompetence(quad.subject.id);
+        comp = competencias.first(function (node) {
+          return node.model.id === quad.subject.id;});
+      }
       var parent = competencias.first(function (node) {
         return node.model.id === quad.object.id;});
       if(parent == null){
@@ -11066,7 +11071,26 @@ function getCompetenciesFromOntology(ontology){
 
   });
 
+  // Deleta triplas que contém a competência, menos as que ela é objeto (ex: comp1 similarTo [comp2])
   function removeValues(){
+
+    prefix1 = 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#';
+    var nm = document.getElementById('nome').value
+
+    for (const quad of store.match(namedNode(editComp.model.id), null, null)){
+        store.delete(quad);
+    }
+
+    // Deleta todas as triplam que tinham a competência como objeto, e adiciona novamente com o novo id
+    for (const quad of store.match(null, null, namedNode(editComp.model.id))){
+      store.addQuad(namedNode(quad.subject.id), namedNode(quad.predicate.id), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
+      store.delete(quad);
+    }
+
+  }
+  
+  // Deleta todas as triplas que contém a competência
+  function removeAllValues(){
 
     for (const quad of store.match(namedNode(editComp.model.id), null, null)){
         store.delete(quad);
@@ -11079,7 +11103,7 @@ function getCompetenciesFromOntology(ontology){
   }
 
   document.getElementById('Deletar').addEventListener('click', () => {
-    removeValues();
+    removeAllValues();
     const writer = new N3.Writer();
     for (const quad of store){
         writer.addQuad(

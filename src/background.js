@@ -162,6 +162,8 @@ function getOntology(tabid){
 
 // Adiciona atividades do Classroom à ontologia, antes de enviar para outra página (obs: ignorará pré-existentes)
 function getCourseWorks(tabid) {
+
+  console.log(ontology);
   
   chrome.identity.getAuthToken({interactive: true}, function(token) {
     gapi.auth.setToken({
