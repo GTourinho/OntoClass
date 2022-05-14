@@ -203,7 +203,7 @@ function displayCompetencias(){
               else if(node.model.proficiencyLevel == 'Advanced'){ desejada = 'Avançado';}
               else if(node.model.proficiencyLevel == 'Expert'){ desejada = 'Especialista';}
 
-              prf.textContent = 'Profic. Desejada: '.concat(desejada).concat(',');
+              prf.textContent = 'Profic. Desejada: '.concat(desejada);
               toInsert.appendChild(prf);
 
             });

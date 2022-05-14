@@ -10808,7 +10808,7 @@ function autoSelectEditComp(){
 
     for(var i = 0; i < editComp.model.similar.length; i++){
         for(option in document.getElementById("Similar").options){
-            if(document.getElementById("Similar")[option].value == editComp.model.requires[i]){
+            if(document.getElementById("Similar")[option].value == editComp.model.similar[i]){
                 
                 document.getElementById("Similar")[option].selected = true;
 
@@ -11083,7 +11083,7 @@ function getCompetenciesFromOntology(ontology){
 
   });
 
-  // Deleta triplas que contém a competência, menos as que ela é objeto (ex: comp1 similarTo [comp2])
+  // Deleta triplas que contém a competência, menos as que ela é objeto #subumes e #requires, as quais são adicionadas com o novo id
   function removeValues(){
 
     prefix1 = 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#';
@@ -11102,6 +11102,16 @@ function getCompetenciesFromOntology(ontology){
       store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
       store.delete(quad);
     }
+
+    for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'), namedNode(editComp.model.id))){
+      store.delete(quad);
+    }
+
+    for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'), namedNode(editComp.model.id))){
+      store.delete(quad);
+    }
+
+
 
   }
   
