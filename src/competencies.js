@@ -11,7 +11,6 @@ const myQuad = quad(
   defaultGraph(),
 );
 
-
 // Variaveis
 var tree = new TreeModel();
 var competencias = tree.parse({name: ''});
@@ -20,7 +19,7 @@ var evidences = [];
 chrome.runtime.sendMessage({from:"competencies",message:"hi!"});
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-
+  
   const parser = new N3.Parser();
   parser.parse(
     message,
@@ -30,7 +29,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
       else
         displayCompetencias();
     });
-  
+    
 });
 
 function quadType(quad){

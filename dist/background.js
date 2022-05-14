@@ -10739,7 +10739,6 @@ const myQuad = quad(
 // Variaveis
 var courseId = '';
 var ontology;
-var editCompId;
 
 // Google API
 var head = document.getElementsByTagName('head')[0];
@@ -10753,6 +10752,7 @@ window.onload = function () {
     gapi.load('client:auth2', onGAPILoad);
   }, 500);
 };
+
 
 const API_KEY = 'AIzaSyD0S0AnY3gPu5xkeMWYbZpftsh_BOndE5s';
 const DISCOVERY_DOCS = ["https://classroom.googleapis.com/$discovery/rest?version=v1"];
@@ -10842,9 +10842,14 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
   }
   else if(message.from == "editcompetence"){
+    if (message.message == "hi!"){
       var tabid = sender.id;
       chrome.extension.sendMessage(tabid,editCompId);
       getOntology(tabid);
+    }
+    else{
+      chrome.storage.local.set({[courseId]: message.message});
+    }
   }
   
 });
@@ -10924,6 +10929,7 @@ function sendOntology(tabid){
     writer.addQuad(
       quad
     );
+    store.delete(quad);
   }
 
   writer.end((error, result) => message = result);

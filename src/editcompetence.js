@@ -23,6 +23,7 @@ var evidencia = document.getElementById("Evidencia");
 var proficiencia = document.getElementById("Proficiencia");
 var count = 0;
 var editCompId;
+var editComp;
 
 chrome.runtime.sendMessage({from:"editcompetence",message:"hi!"});
 
@@ -39,7 +40,9 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function autoSelectEditComp(){
-    var editComp = competencias.first(function (node) { return node.model.id == editCompId});
+    
+    editComp = competencias.first(function (node) { return node.model.id == editCompId});
+    
     document.getElementById('nome').value = editComp.model.name;
     document.getElementById('Habilidade').value = editComp.model.skill;
     document.getElementById('Conhecimento').value = editComp.model.knowledge;
@@ -88,6 +91,8 @@ function autoSelectEditComp(){
             }
         }
     }   
+
+    
     
 };
 
@@ -235,6 +240,9 @@ function getCompetenciesFromOntology(ontology){
   };
 
   document.getElementById('Salvar').addEventListener('click', () => {
+
+    removeValues();
+
     var prefix1 = "http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#";
     var sub = subsume.options[subsume.selectedIndex].value;
     var prf = proficiencia.options[proficiencia.selectedIndex].value;
@@ -334,7 +342,15 @@ function getCompetenciesFromOntology(ontology){
 
   });
 
+  function removeValues(){
+
+    for (const quad of store.match(namedNode(editComp.model.id), null, null)){
+        store.delete(quad);
+    }
+
+  }
+
   function saveOntologyAndReturn(ontology){
-    chrome.runtime.sendMessage({from:"addcompetence", message: ontology});
+    chrome.runtime.sendMessage({from:"editcompetence", message: ontology});
     window.location.href = "./competencies.html";
   }
