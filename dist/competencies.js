@@ -10739,6 +10739,8 @@ const myQuad = quad(
 var tree = new TreeModel();
 var competencias = tree.parse({name: ''});
 var evidences = [];
+var toInsert = document.createElement("div");
+document.body.appendChild(toInsert);
 
 chrome.runtime.sendMessage({from:"competencies",message:"hi!"});
 
@@ -10864,6 +10866,71 @@ function displayCompetencias(){
 
             // Adicionar texto
             var texto = document.createElement('text');
+            texto.addEventListener('click', () => {
+
+              toInsert.innerHTML = '';
+
+              var req = document.createElement('text');
+              req.style.whiteSpace = 'nowrap';
+              req.style.display = 'block';
+              req.style.marginTop = '10px';
+              var requiretext = 'Requisito: '
+              for(var i = 0; i < node.model.requires.length; i++){
+                requiretext = requiretext.concat(node.model.requires[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')).concat(', ');
+              }
+              req.textContent = requiretext;
+              toInsert.appendChild(req);
+
+              var con = document.createElement('text');
+              con.style.whiteSpace = 'nowrap';
+              con.style.display = 'block';
+              con.textContent = 'Conhecimento: '.concat(node.model.knowledge).concat(',');
+              toInsert.appendChild(con);
+
+              var hab = document.createElement('text');
+              hab.style.whiteSpace = 'nowrap';
+              hab.style.display = 'block';
+              hab.textContent = 'Habilidade: '.concat(node.model.skill).concat(',');
+              toInsert.appendChild(hab);
+
+              var ev = document.createElement('text');
+              ev.style.whiteSpace = 'nowrap';
+              ev.style.display = 'block';
+              ev.textContent = 'Evidencias: ';
+              for(var i = 0; i < node.model.evidence.length; i++){
+                var newURL = evidences['http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#'.concat(node.model.evidence[i]).replace(/ /gi, '_')].source.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '');
+                var evi = document.createElement('a');
+                evi.setAttribute('href', newURL);
+                evi.setAttribute('target', "_blank");
+                evi.textContent = node.model.evidence[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ').concat(', ');
+                ev.appendChild(evi);
+              }
+              toInsert.appendChild(ev);
+
+              var sim = document.createElement('text');
+              sim.style.whiteSpace = 'nowrap';
+              sim.style.display = 'block';
+              var simtext = 'Similar à: '
+              for(var i = 0; i < node.model.similar.length; i++){
+                simtext = simtext.concat(node.model.similar[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')).concat(', ');
+              }
+              sim.textContent = simtext;
+              toInsert.appendChild(sim);
+
+              var prf = document.createElement('text');
+              prf.style.whiteSpace = 'nowrap';
+              prf.style.display = 'block';
+              var desejada;
+
+              if(node.model.proficiencyLevel == 'Beginner'){ desejada = 'Iniciante';}
+              else if(node.model.proficiencyLevel == 'Intermediate'){ desejada = 'Intermediário';}
+              else if(node.model.proficiencyLevel == 'Advanced'){ desejada = 'Avançado';}
+              else if(node.model.proficiencyLevel == 'Expert'){ desejada = 'Especialista';}
+
+              prf.textContent = 'Profic. Desejada: '.concat(desejada).concat(',');
+              toInsert.appendChild(prf);
+
+            });
             texto.textContent = node.model.name;
             comp.appendChild(texto);
             
@@ -10884,7 +10951,6 @@ function displayCompetencias(){
               nest.setAttribute('class', 'nested');
               comp.appendChild(nest);
             }
-
 
             // Encontrar o pai para o nó
             if(node.model.subsumes == ''){

@@ -348,7 +348,22 @@ function getCompetenciesFromOntology(ontology){
         store.delete(quad);
     }
 
+    for (const quad of store.match(null, null, namedNode(editComp.model.id))){
+        store.delete(quad);
+    }
+
   }
+
+  document.getElementById('Deletar').addEventListener('click', () => {
+    removeValues();
+    const writer = new N3.Writer();
+    for (const quad of store){
+        writer.addQuad(
+          quad
+        );
+      }
+    writer.end((error, result) => saveOntologyAndReturn(result));
+  });
 
   function saveOntologyAndReturn(ontology){
     chrome.runtime.sendMessage({from:"editcompetence", message: ontology});
