@@ -189,7 +189,7 @@ export function displayCompetencias(type){
         comp.appendChild(texto);
 
         if(type == 'selectprofic'){
-            comp.appendChild(createSelectProfic());
+            comp.appendChild(createSelectProfic(node));
         }
         else{
             comp.appendChild(editButton(node));
@@ -224,10 +224,25 @@ export function displayCompetencias(type){
         this.classList.toggle("caret-down");
     });
     }
+
+    if(type == 'selectprofic'){
+        autoSelectProfic();
+    }
           
 }
 
-function createSelectProfic(){
+export function autoSelectProfic(){
+    var student = document.getElementById('estud').value;
+    chrome.storage.local.get([student], function(data) {
+        var profics = document.getElementsByTagName('select');
+        for(var profic = 1; profic < profics.length; profic++){
+            var a = profics[profic].id;
+            profics[profic].value = data[student][a];
+        }
+    });
+}
+
+function createSelectProfic(node){
     var profic = document.createElement('select');
     var iniciante = document.createElement('option');
     var intermediario = document.createElement('option');
@@ -252,6 +267,7 @@ function createSelectProfic(){
     profic.add(especialista);
 
     profic.style.marginLeft = '5px';
+    profic.setAttribute('id', node.model.id);
 
     return profic;
 }

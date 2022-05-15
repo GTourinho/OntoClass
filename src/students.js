@@ -1,7 +1,7 @@
 // Imports
 var TreeModel = require('tree-model');
 const N3 = require('n3');
-import { quadType, displayCompetencias } from './compfunctions';
+import { quadType, displayCompetencias, autoSelectProfic } from './compfunctions';
 
 // Variaveis
 var toInsert = document.createElement("div");
@@ -39,3 +39,17 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
 
 });
+
+document.getElementById('salvar').addEventListener('click', () => {
+    var profics = document.getElementsByTagName('select');
+    var student = {id: profics[0].value};
+    for(var profic = 1; profic < profics.length; profic++){
+        student[profics[profic].id] = (profics[profic].value);
+    }
+    chrome.storage.local.set({[student.id]: student});
+  });
+
+document.getElementById('estud').onchange = function() {
+    autoSelectProfic();
+}
+    

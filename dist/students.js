@@ -10626,6 +10626,7 @@ function config (name) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "addToStore": () => (/* binding */ addToStore),
+/* harmony export */   "autoSelectProfic": () => (/* binding */ autoSelectProfic),
 /* harmony export */   "displayCompetencias": () => (/* binding */ displayCompetencias),
 /* harmony export */   "getCompOptions": () => (/* binding */ getCompOptions),
 /* harmony export */   "quadType": () => (/* binding */ quadType),
@@ -10822,7 +10823,7 @@ function displayCompetencias(type){
         comp.appendChild(texto);
 
         if(type == 'selectprofic'){
-            comp.appendChild(createSelectProfic());
+            comp.appendChild(createSelectProfic(node));
         }
         else{
             comp.appendChild(editButton(node));
@@ -10857,10 +10858,25 @@ function displayCompetencias(type){
         this.classList.toggle("caret-down");
     });
     }
+
+    if(type == 'selectprofic'){
+        autoSelectProfic();
+    }
           
 }
 
-function createSelectProfic(){
+function autoSelectProfic(){
+    var student = document.getElementById('estud').value;
+    chrome.storage.local.get([student], function(data) {
+        var profics = document.getElementsByTagName('select');
+        for(var profic = 1; profic < profics.length; profic++){
+            var a = profics[profic].id;
+            profics[profic].value = data[student][a];
+        }
+    });
+}
+
+function createSelectProfic(node){
     var profic = document.createElement('select');
     var iniciante = document.createElement('option');
     var intermediario = document.createElement('option');
@@ -10885,6 +10901,7 @@ function createSelectProfic(){
     profic.add(especialista);
 
     profic.style.marginLeft = '5px';
+    profic.setAttribute('id', node.model.id);
 
     return profic;
 }
@@ -11214,6 +11231,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
 
 });
+
+document.getElementById('salvar').addEventListener('click', () => {
+    var profics = document.getElementsByTagName('select');
+    var student = {id: profics[0].value};
+    for(var profic = 1; profic < profics.length; profic++){
+        student[profics[profic].id] = (profics[profic].value);
+    }
+    chrome.storage.local.set({[student.id]: student});
+  });
+
+document.getElementById('estud').onchange = function() {
+    (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.autoSelectProfic)();
+}
+    
 })();
 
 /******/ })()
