@@ -10731,12 +10731,6 @@ const N3 = __webpack_require__(/*! n3 */ "./node_modules/n3/src/index.js");
 const store = new N3.Store();
 const { DataFactory } = N3;
 const { namedNode, literal, defaultGraph, quad } = DataFactory;
-const myQuad = quad(
-  namedNode('https://ruben.verborgh.org/profile/#me'),
-  namedNode('http://xmlns.com/foaf/0.1/givenName'),
-  literal('Ruben', 'en'),
-  defaultGraph(),
-);
 var tree = new TreeModel();
 var competencias = tree.parse({name: ''});
 var evidences = [];

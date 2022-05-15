@@ -84,8 +84,13 @@ function getCourses(tabid) {
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   if (message.from == "students"){
+    if (message.message == "hi!"){
       var tabid = sender.id;
       getStudents(tabid);
+    }
+    else{
+      getOntology(tabid);
+    }
   }
 
   else if(message.from == "popup"){
@@ -162,8 +167,6 @@ function getOntology(tabid){
 
 // Adiciona atividades do Classroom à ontologia, antes de enviar para outra página (obs: ignorará pré-existentes)
 function getCourseWorks(tabid) {
-
-  console.log(ontology);
   
   chrome.identity.getAuthToken({interactive: true}, function(token) {
     gapi.auth.setToken({

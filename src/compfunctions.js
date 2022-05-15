@@ -1,115 +1,15 @@
 // Imports
 var TreeModel = require('tree-model');
 const N3 = require('n3');
-
-
-// Variaveis
-const store = new N3.Store();
 const { DataFactory } = N3;
 const { namedNode, literal, defaultGraph, quad } = DataFactory;
+
+// Variaveis
 var tree = new TreeModel();
 var competencias = tree.parse({name: ''});
 var evidences = [];
-var subsume = document.getElementById("Subsume");
-var requisito = document.getElementById("Requisito");
-var similar = document.getElementById("Similar");
-var evidencia = document.getElementById("Evidencia");
-var proficiencia = document.getElementById("Proficiencia");
-var count = 0;
-var editCompId;
-var editComp;
 
-chrome.runtime.sendMessage({from:"editcompetence",message:"hi!"});
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-
-    if(count == 0){
-        editCompId = message;
-        count += 1;
-    }
-    else{
-        getCompetenciesFromOntology(message);
-    }
-
-});
-
-function autoSelectEditComp(){
-    
-    editComp = competencias.first(function (node) { return node.model.id == editCompId});
-    
-    document.getElementById('nome').value = editComp.model.name;
-    document.getElementById('Habilidade').value = editComp.model.skill;
-    document.getElementById('Conhecimento').value = editComp.model.knowledge;
-    if(editComp.model.proficiencyLevel == 'Beginner'){
-        document.getElementById("Proficiencia").value = 'Iniciante';
-    }
-    else if(editComp.model.proficiencyLevel == 'Intermediate'){
-        document.getElementById("Proficiencia").value = 'Intermediário';
-    }
-    else if(editComp.model.proficiencyLevel == 'Advanced'){
-        document.getElementById("Proficiencia").value = 'Avançado';
-    }
-    else if(editComp.model.proficiencyLevel == 'Expert'){
-        document.getElementById("Proficiencia").value = 'Especialista';
-    }
-    if(editComp.model.subsumes != ''){
-        document.getElementById("Subsume").value = editComp.model.subsumes;
-    }
-
-    for(var i = 0; i < editComp.model.evidence.length; i++){
-        for(option in document.getElementById("Evidencia").options){
-            if(document.getElementById("Evidencia")[option].value == editComp.model.evidence[i]){
-                
-                document.getElementById("Evidencia")[option].selected = true;
-            }
-        }
-    }   
-
-
-    for(var i = 0; i < editComp.model.requires.length; i++){
-        for(option in document.getElementById("Requisito").options){
-            if(document.getElementById("Requisito")[option].value == editComp.model.requires[i]){
-                
-                document.getElementById("Requisito")[option].selected = true;
-
-            }
-        }
-    }   
-
-    for(var i = 0; i < editComp.model.similar.length; i++){
-        for(option in document.getElementById("Similar").options){
-            if(document.getElementById("Similar")[option].value == editComp.model.similar[i]){
-                
-                document.getElementById("Similar")[option].selected = true;
-
-            }
-        }
-    }   
-
-    
-    
-};
-
-function getCompetenciesFromOntology(ontology){
-    const parser = new N3.Parser();
-    parser.parse(
-      ontology
-      ,
-      (error, quad, prefixes) => {
-        if (quad){
-          quadType(quad);
-          store.addQuad(quad);
-        }
-        else{
-          
-          displayCompetencias();
-  
-        }
-      });
-      
-  }
-  
-  function quadType(quad){
+export function quadType(quad){
     // is competency
     if(quad._object.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Competency' && quad._predicate.id == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'){
         // verifica se ja esta na arvore
@@ -122,7 +22,7 @@ function getCompetenciesFromOntology(ontology){
     else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasEvidence'){
       var comp = competencias.first(function (node) {
         return node.model.id === quad._subject.id;});
-      comp.model.evidence.push(quad._object.id);
+      comp.model.evidence.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' '));
     }
     // name
     else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#name'){
@@ -134,11 +34,6 @@ function getCompetenciesFromOntology(ontology){
     else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'){
       var comp = competencias.first(function (node) {
         return node.model.id === quad._subject.id;});
-      if(comp == null){
-        newCompetence(quad.subject.id);
-        comp = competencias.first(function (node) {
-          return node.model.id === quad.subject.id;});
-      }
       var parent = competencias.first(function (node) {
         return node.model.id === quad.object.id;});
       if(parent == null){
@@ -200,22 +95,195 @@ function getCompetenciesFromOntology(ontology){
     }
   }    
   
-  function newCompetence(_id){
+function newCompetence(_id){
     competencias.addChild(tree.parse({id: _id, name: '', evidence: [], subsumes: '', proficiencyLevel: '', requires: [], similar: [], skill: [], knowledge: [], composedOf: []}));
   }
+  
+export function displayCompetencias(type){
 
-  function displayCompetencias(){
+    var toInsert = document.createElement("div");
+    document.body.appendChild(toInsert);
+  
+    competencias.walk(function (node) {
+    if(node.model.name != ''){
+        // Elementos do nó
+        var comp = document.createElement("li");
+        comp.setAttribute('id', node.model.id);
 
+        // Caso a competência tenha filhos
+        if(node.hasChildren()){
+        // Adicionar caret
+        var span = document.createElement("span");
+        span.setAttribute("class","caret");
+        comp.appendChild(span);
+        }
+
+        // Adicionar texto
+        var texto = document.createElement('text');
+        texto.addEventListener('click', () => {
+
+        toInsert.innerHTML = '';
+
+        var req = document.createElement('text');
+        req.style.whiteSpace = 'nowrap';
+        req.style.display = 'block';
+        req.style.marginTop = '10px';
+        var requiretext = 'Requisito: '
+        for(var i = 0; i < node.model.requires.length; i++){
+            requiretext = requiretext.concat(node.model.requires[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')).concat(', ');
+        }
+        req.textContent = requiretext;
+        toInsert.appendChild(req);
+
+        var con = document.createElement('text');
+        con.style.whiteSpace = 'nowrap';
+        con.style.display = 'block';
+        con.textContent = 'Conhecimento: '.concat(node.model.knowledge).concat(',');
+        toInsert.appendChild(con);
+
+        var hab = document.createElement('text');
+        hab.style.whiteSpace = 'nowrap';
+        hab.style.display = 'block';
+        hab.textContent = 'Habilidade: '.concat(node.model.skill).concat(',');
+        toInsert.appendChild(hab);
+
+        var ev = document.createElement('text');
+        ev.style.whiteSpace = 'nowrap';
+        ev.style.display = 'block';
+        ev.textContent = 'Evidencias: ';
+        for(var i = 0; i < node.model.evidence.length; i++){
+            var newURL = evidences['http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#'.concat(node.model.evidence[i]).replace(/ /gi, '_')].source.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '');
+            var evi = document.createElement('a');
+            evi.setAttribute('href', newURL);
+            evi.setAttribute('target', "_blank");
+            evi.textContent = node.model.evidence[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ').concat(', ');
+            ev.appendChild(evi);
+        }
+        toInsert.appendChild(ev);
+
+        var sim = document.createElement('text');
+        sim.style.whiteSpace = 'nowrap';
+        sim.style.display = 'block';
+        var simtext = 'Similar à: '
+        for(var i = 0; i < node.model.similar.length; i++){
+            simtext = simtext.concat(node.model.similar[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')).concat(', ');
+        }
+        sim.textContent = simtext;
+        toInsert.appendChild(sim);
+
+        var prf = document.createElement('text');
+        prf.style.whiteSpace = 'nowrap';
+        prf.style.display = 'block';
+        var desejada;
+
+        if(node.model.proficiencyLevel == 'Beginner'){ desejada = 'Iniciante';}
+        else if(node.model.proficiencyLevel == 'Intermediate'){ desejada = 'Intermediário';}
+        else if(node.model.proficiencyLevel == 'Advanced'){ desejada = 'Avançado';}
+        else if(node.model.proficiencyLevel == 'Expert'){ desejada = 'Especialista';}
+
+        prf.textContent = 'Profic. Desejada: '.concat(desejada);
+        toInsert.appendChild(prf);
+
+        });
+        texto.textContent = node.model.name;
+        comp.appendChild(texto);
+
+        if(type == 'selectprofic'){
+            comp.appendChild(createSelectProfic());
+        }
+        else{
+            comp.appendChild(editButton(node));
+        }
+
+        // Caso a competência tenha filhos
+        if(node.hasChildren()){
+        // Adicionar espaço para os filhos
+        var nest = document.createElement("ul");
+        nest.setAttribute('class', 'nested');
+        comp.appendChild(nest);
+        }
+
+        // Encontrar o pai para o nó
+        if(node.model.subsumes == ''){
+        var parent = document.getElementById("myUL");
+        }
+        else{
+        var parent = document.getElementById(node.model.subsumes).getElementsByClassName("nested")[0];
+        }
+        parent.appendChild(comp);
+    }
+    });
+    
+    // Expansão e colapso de nó da árvore
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+    toggler[i].addEventListener("click", function() {
+        this.parentElement.querySelector(".nested").classList.toggle("active");
+        this.classList.toggle("caret-down");
+    });
+    }
+          
+}
+
+function createSelectProfic(){
+    var profic = document.createElement('select');
+    var iniciante = document.createElement('option');
+    var intermediario = document.createElement('option');
+    var avancado = document.createElement('option');
+    var especialista = document.createElement('option');
+
+    iniciante.value = "Iniciante";
+    iniciante.text = "Iniciante";
+
+    intermediario.value = "Intermediario";
+    intermediario.text = "Intermediario";
+
+    avancado.value = "Avançado";
+    avancado.text = "Avançado";
+
+    especialista.value = "Especialista";
+    especialista.text = "Especialista";
+
+    profic.add(iniciante);
+    profic.add(intermediario);
+    profic.add(avancado);
+    profic.add(especialista);
+
+    profic.style.marginLeft = '5px';
+
+    return profic;
+}
+
+function editButton(node){
+    // Botão de editar competência
+    var _button = document.createElement("button");
+    _button.textContent = "Editar";
+    _button.setAttribute('class', 'edit');
+    _button.addEventListener('click', () => {
+        chrome.runtime.sendMessage({from:"competencies",message:node.model.id});
+        window.location.href = "./editcompetence.html";
+    });
+    return _button;
+}
+
+export function getCompOptions(){
+    var subsume = document.getElementById("Subsume");
+    var requisito = document.getElementById("Requisito");
+    var similar = document.getElementById("Similar");
+    var evidencia = document.getElementById("Evidencia");
+  
     competencias.walk(function (node) {
         if(node.model.name != ''){
             var sub = document.createElement("option");
             sub.textContent = node.model.name;
             sub.value = node.model.id;
-
+  
             var req = document.createElement("option");
             req.textContent = node.model.name;
             req.value = node.model.id;
-
+  
             var sim = document.createElement("option");
             sim.textContent = node.model.name;
             sim.value = node.model.id;
@@ -225,26 +293,26 @@ function getCompetenciesFromOntology(ontology){
             similar.appendChild(sim);
         }
     });
-
-
+  
+  
     for (const evidence in evidences) {
         var ev = document.createElement("option");
         ev.textContent = evidence.replace("http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#", '').replace(/_/gi, ' ');
         ev.value = evidence;
         evidencia.appendChild(ev);
-    }
+      }
+  
+}
 
-      autoSelectEditComp();
-
-  };
-
-  document.getElementById('Salvar').addEventListener('click', () => {
-
-    removeValues();
+export function save(store){
+    
+    var requisito = document.getElementById("Requisito");
+    var similar = document.getElementById("Similar");
+    var evidencia = document.getElementById("Evidencia");
 
     var prefix1 = "http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#";
-    var sub = subsume.options[subsume.selectedIndex].value;
-    var prf = proficiencia.options[proficiencia.selectedIndex].value;
+    var sub = document.getElementById("Subsume").options[document.getElementById("Subsume").selectedIndex].value;
+    var prf = document.getElementById("Proficiencia").options[document.getElementById("Proficiencia").selectedIndex].value;
     var nm = document.getElementById('nome').value
     var hab = document.getElementById('Habilidade').value
     var con = document.getElementById('Conhecimento').value
@@ -350,66 +418,13 @@ function getCompetenciesFromOntology(ontology){
     }
   
     writer.end((error, result) => saveOntologyAndReturn(result));
+}
 
-  });
-
-  // Deleta triplas que contém a competência, menos as que ela é objeto #subumes e #requires, as quais são adicionadas com o novo id
-  function removeValues(){
-
-    prefix1 = 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#';
-    var nm = document.getElementById('nome').value
-
-    for (const quad of store.match(namedNode(editComp.model.id), null, null)){
-        store.delete(quad);
-    }
-
-    for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'), namedNode(editComp.model.id))){
-      store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
-      store.delete(quad);
-    }
-
-    for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'), namedNode(editComp.model.id))){
-      store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
-      store.delete(quad);
-    }
-
-    for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'), namedNode(editComp.model.id))){
-      store.delete(quad);
-    }
-
-    for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'), namedNode(editComp.model.id))){
-      store.delete(quad);
-    }
-
-
-
-  }
-  
-  // Deleta todas as triplas que contém a competência
-  function removeAllValues(){
-
-    for (const quad of store.match(namedNode(editComp.model.id), null, null)){
-        store.delete(quad);
-    }
-
-    for (const quad of store.match(null, null, namedNode(editComp.model.id))){
-        store.delete(quad);
-    }
-
-  }
-
-  document.getElementById('Deletar').addEventListener('click', () => {
-    removeAllValues();
-    const writer = new N3.Writer();
-    for (const quad of store){
-        writer.addQuad(
-          quad
-        );
-      }
-    writer.end((error, result) => saveOntologyAndReturn(result));
-  });
-
-  function saveOntologyAndReturn(ontology){
-    chrome.runtime.sendMessage({from:"editcompetence", message: ontology});
+function saveOntologyAndReturn(ontology){
+    chrome.runtime.sendMessage({from:"addcompetence", message: ontology});
     window.location.href = "./competencies.html";
   }
+
+export function addToStore(quad){
+    store.add(quad);
+}

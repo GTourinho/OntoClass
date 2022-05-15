@@ -68,6 +68,10 @@
             {
                 "name": "editcompetence",
                 "src": "./src/editcompetence.js"
+            },
+            {
+                "name": "compfunctions",
+                "src": "./src/compfunctions.js"
             }
         ]
     },
