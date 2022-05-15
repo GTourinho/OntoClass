@@ -21,7 +21,8 @@
   "permissions": [
     "storage",
     "identity",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "identity.email"
   ],
   "key": "lkpipbnkjilinaihbonhenapjppokioi"
 }

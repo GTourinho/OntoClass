@@ -10616,6 +10616,496 @@ function config (name) {
 
 /***/ }),
 
+/***/ "./src/compfunctions.js":
+/*!******************************!*\
+  !*** ./src/compfunctions.js ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "addToStore": () => (/* binding */ addToStore),
+/* harmony export */   "autoSelectProfic": () => (/* binding */ autoSelectProfic),
+/* harmony export */   "displayCompetencias": () => (/* binding */ displayCompetencias),
+/* harmony export */   "getCompOptions": () => (/* binding */ getCompOptions),
+/* harmony export */   "quadType": () => (/* binding */ quadType),
+/* harmony export */   "save": () => (/* binding */ save)
+/* harmony export */ });
+// Imports
+var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
+const N3 = __webpack_require__(/*! n3 */ "./node_modules/n3/src/index.js");
+const { DataFactory } = N3;
+const { namedNode, literal, defaultGraph, quad } = DataFactory;
+
+// Variaveis
+var tree = new TreeModel();
+var competencias = tree.parse({name: ''});
+var evidences = [];
+
+function quadType(quad){
+    // is competency
+    if(quad._object.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Competency' && quad._predicate.id == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'){
+        // verifica se ja esta na arvore
+        if(competencias.first(function (node) {
+        return node.model.id === quad._subject.id;}) == null){
+          newCompetence(quad._subject.id);
+        }
+    }
+    // has evidence
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasEvidence'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.evidence.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' '));
+    }
+    // name
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#name'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.name =  quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, '');
+    }
+    // subsumes
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      var parent = competencias.first(function (node) {
+        return node.model.id === quad.object.id;});
+      if(parent == null){
+        newCompetence(quad._object.id);
+        parent = competencias.first(function (node) {
+          return node.model.id === quad.object.id;});
+      }
+      comp = comp.drop();
+      comp.model.subsumes = quad.object.id;
+      parent.addChild(comp);
+    }
+    // hasSkill
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasSkill'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.skill.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, ''));
+    }
+    // hasKnowledge
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasKnowledge'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.knowledge.push(quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/\"/gi, ''));
+    }
+    // hasProficiencyLevel
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasProficiencyLevel'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.proficiencyLevel =  quad._object.id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '');
+    }
+    // requires
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.requires.push(quad._object.id);
+    }
+    // isSimilarTo
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.similar.push(quad._object.id);
+    }
+    // isComposedOf
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'){
+      var comp = competencias.first(function (node) {
+        return node.model.id === quad._subject.id;});
+      comp.model.composedOf.push(quad._object.id);
+    }
+    // Evidencias:
+  
+    // is evidence
+    else if(quad._object.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Evidence' && quad._predicate.id == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'){
+      var id = quad._subject.id;
+      evidences[id] = {name : id.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')};
+    }
+    // source
+    else if(quad._predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#source'){
+      var id = quad._subject.id;
+      evidences[id].source = quad._object.id;
+    }
+  }    
+  
+function newCompetence(_id){
+    competencias.addChild(tree.parse({id: _id, name: '', evidence: [], subsumes: '', proficiencyLevel: '', requires: [], similar: [], skill: [], knowledge: [], composedOf: []}));
+  }
+  
+function displayCompetencias(type){
+
+    var toInsert = document.createElement("div");
+    document.body.appendChild(toInsert);
+  
+    competencias.walk(function (node) {
+    if(node.model.name != ''){
+        // Elementos do nó
+        var comp = document.createElement("li");
+        comp.setAttribute('id', node.model.id);
+
+        // Caso a competência tenha filhos
+        if(node.hasChildren()){
+        // Adicionar caret
+        var span = document.createElement("span");
+        span.setAttribute("class","caret");
+        comp.appendChild(span);
+        }
+
+        // Adicionar texto
+        var texto = document.createElement('text');
+        texto.addEventListener('click', () => {
+
+        toInsert.innerHTML = '';
+
+        var req = document.createElement('text');
+        req.style.whiteSpace = 'nowrap';
+        req.style.display = 'block';
+        req.style.marginTop = '10px';
+        var requiretext = 'Requisito: '
+        for(var i = 0; i < node.model.requires.length; i++){
+            requiretext = requiretext.concat(node.model.requires[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')).concat(', ');
+        }
+        req.textContent = requiretext;
+        toInsert.appendChild(req);
+
+        var con = document.createElement('text');
+        con.style.whiteSpace = 'nowrap';
+        con.style.display = 'block';
+        con.textContent = 'Conhecimento: '.concat(node.model.knowledge).concat(',');
+        toInsert.appendChild(con);
+
+        var hab = document.createElement('text');
+        hab.style.whiteSpace = 'nowrap';
+        hab.style.display = 'block';
+        hab.textContent = 'Habilidade: '.concat(node.model.skill).concat(',');
+        toInsert.appendChild(hab);
+
+        var ev = document.createElement('text');
+        ev.style.whiteSpace = 'nowrap';
+        ev.style.display = 'block';
+        ev.textContent = 'Evidencias: ';
+        for(var i = 0; i < node.model.evidence.length; i++){
+            var newURL = evidences['http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#'.concat(node.model.evidence[i]).replace(/ /gi, '_')].source.replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '');
+            var evi = document.createElement('a');
+            evi.setAttribute('href', newURL);
+            evi.setAttribute('target', "_blank");
+            evi.textContent = node.model.evidence[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ').concat(', ');
+            ev.appendChild(evi);
+        }
+        toInsert.appendChild(ev);
+
+        var sim = document.createElement('text');
+        sim.style.whiteSpace = 'nowrap';
+        sim.style.display = 'block';
+        var simtext = 'Similar à: '
+        for(var i = 0; i < node.model.similar.length; i++){
+            simtext = simtext.concat(node.model.similar[i].replace('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#', '').replace(/_/gi, ' ')).concat(', ');
+        }
+        sim.textContent = simtext;
+        toInsert.appendChild(sim);
+
+        var prf = document.createElement('text');
+        prf.style.whiteSpace = 'nowrap';
+        prf.style.display = 'block';
+        var desejada;
+
+        if(node.model.proficiencyLevel == 'Beginner'){ desejada = 'Iniciante';}
+        else if(node.model.proficiencyLevel == 'Intermediate'){ desejada = 'Intermediário';}
+        else if(node.model.proficiencyLevel == 'Advanced'){ desejada = 'Avançado';}
+        else if(node.model.proficiencyLevel == 'Expert'){ desejada = 'Especialista';}
+
+        prf.textContent = 'Profic. Desejada: '.concat(desejada);
+        toInsert.appendChild(prf);
+
+        });
+        texto.textContent = node.model.name;
+        comp.appendChild(texto);
+
+        if(type == 'selectprofic'){
+            comp.appendChild(createSelectProfic(node));
+        }
+        else if(type == 'studentview'){
+            comp.appendChild(studentProficText(node));
+        }
+        else{
+            comp.appendChild(editButton(node));
+        }
+
+        // Caso a competência tenha filhos
+        if(node.hasChildren()){
+        // Adicionar espaço para os filhos
+        var nest = document.createElement("ul");
+        nest.setAttribute('class', 'nested');
+        comp.appendChild(nest);
+        }
+
+        // Encontrar o pai para o nó
+        if(node.model.subsumes == ''){
+        var parent = document.getElementById("myUL");
+        }
+        else{
+        var parent = document.getElementById(node.model.subsumes).getElementsByClassName("nested")[0];
+        }
+        parent.appendChild(comp);
+    }
+    });
+    
+    // Expansão e colapso de nó da árvore
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+    toggler[i].addEventListener("click", function() {
+        this.parentElement.querySelector(".nested").classList.toggle("active");
+        this.classList.toggle("caret-down");
+    });
+    }
+
+    if(type == 'selectprofic'){
+        autoSelectProfic();
+    }
+          
+}
+
+function studentProficText(node){
+
+    var profic = document.createElement('text');
+
+    chrome.identity.getProfileUserInfo({accountStatus: 'ANY'}, function(userinfo){
+        
+        chrome.storage.local.get([userinfo.id], function(data) {
+            
+            var proficiencia;
+            proficiencia = data[userinfo.id][node.model.id];
+            profic.textContent = proficiencia;
+
+            profic.style.marginLeft = '5px';
+            profic.setAttribute('id', node.model.id);
+        });
+       
+      });
+
+ 
+    return profic;
+}
+
+function autoSelectProfic(){
+    var student = document.getElementById('estud').value;
+    chrome.storage.local.get([student], function(data) {
+        var profics = document.getElementsByTagName('select');
+        for(var profic = 1; profic < profics.length; profic++){
+            var a = profics[profic].id;
+            profics[profic].value = data[student][a];
+        }
+    });
+}
+
+function createSelectProfic(node){
+    var profic = document.createElement('select');
+    var iniciante = document.createElement('option');
+    var intermediario = document.createElement('option');
+    var avancado = document.createElement('option');
+    var especialista = document.createElement('option');
+
+    iniciante.value = "Iniciante";
+    iniciante.text = "Iniciante";
+
+    intermediario.value = "Intermediario";
+    intermediario.text = "Intermediario";
+
+    avancado.value = "Avançado";
+    avancado.text = "Avançado";
+
+    especialista.value = "Especialista";
+    especialista.text = "Especialista";
+
+    profic.add(iniciante);
+    profic.add(intermediario);
+    profic.add(avancado);
+    profic.add(especialista);
+
+    profic.style.marginLeft = '5px';
+    profic.setAttribute('id', node.model.id);
+
+    return profic;
+}
+
+function editButton(node){
+    // Botão de editar competência
+    var _button = document.createElement("button");
+    _button.textContent = "Editar";
+    _button.setAttribute('class', 'edit');
+    _button.addEventListener('click', () => {
+        chrome.runtime.sendMessage({from:"competencies",message:node.model.id});
+        window.location.href = "./editcompetence.html";
+    });
+    return _button;
+}
+
+function getCompOptions(){
+    var subsume = document.getElementById("Subsume");
+    var requisito = document.getElementById("Requisito");
+    var similar = document.getElementById("Similar");
+    var evidencia = document.getElementById("Evidencia");
+  
+    competencias.walk(function (node) {
+        if(node.model.name != ''){
+            var sub = document.createElement("option");
+            sub.textContent = node.model.name;
+            sub.value = node.model.id;
+  
+            var req = document.createElement("option");
+            req.textContent = node.model.name;
+            req.value = node.model.id;
+  
+            var sim = document.createElement("option");
+            sim.textContent = node.model.name;
+            sim.value = node.model.id;
+            
+            subsume.appendChild(sub);
+            requisito.appendChild(req);
+            similar.appendChild(sim);
+        }
+    });
+  
+  
+    for (const evidence in evidences) {
+        var ev = document.createElement("option");
+        ev.textContent = evidence.replace("http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#", '').replace(/_/gi, ' ');
+        ev.value = evidence;
+        evidencia.appendChild(ev);
+      }
+  
+}
+
+function save(store){
+    
+    var requisito = document.getElementById("Requisito");
+    var similar = document.getElementById("Similar");
+    var evidencia = document.getElementById("Evidencia");
+
+    var prefix1 = "http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#";
+    var sub = document.getElementById("Subsume").options[document.getElementById("Subsume").selectedIndex].value;
+    var prf = document.getElementById("Proficiencia").options[document.getElementById("Proficiencia").selectedIndex].value;
+    var nm = document.getElementById('nome').value
+    var hab = document.getElementById('Habilidade').value
+    var con = document.getElementById('Conhecimento').value
+
+    if(prf == 'Iniciante'){
+      prf = 'Beginner';
+    }
+    else if(prf == 'Intermediário'){
+      prf = 'Intermediate';
+    }
+    else if(prf == 'Avançado'){
+      prf = 'Advanced';
+    }
+    else if(prf == 'Especialista'){
+      prf = 'Expert';
+    }
+
+    // Inicia o escritor da ontologia para string
+    const writer = new N3.Writer();
+  
+    for (const quad of store){
+      writer.addQuad(
+        quad
+      );
+    }
+
+    if(nm != ''){
+      writer.addQuad(
+        namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+        namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+        namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Competency')
+      );
+      writer.addQuad(
+        namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+        namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#name'),
+        literal(nm)
+      );
+      writer.addQuad(
+        namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+        namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasProficiencyLevel'),
+        namedNode(prf)
+      );
+      if(sub != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'),
+          namedNode(sub)
+        );
+        // Adiciona também o isComposedOf (inverso)
+        writer.addQuad(
+          namedNode(sub),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'),
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_'))
+        );
+      }
+      for (var option of requisito.options){
+        if (option.selected) {
+          writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'),
+          namedNode(option.value)
+        );
+        } 
+      }
+      for (var option of similar.options){
+        // Adicionar também a simétrica
+        if (option.selected) {
+          writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'),
+          namedNode(option.value)
+          );
+          writer.addQuad(
+            namedNode(option.value),
+            namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'),
+            namedNode(prefix1.concat(nm).replace(/ /gi, '_'))
+          );
+        }
+        }
+      if(hab != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasSkill'),
+          literal(hab)
+        );
+      }
+      if(con != 'Nenhuma'){
+        writer.addQuad(
+          namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+          namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasKnowledge'),
+          literal(con)
+        );
+      }
+      for (var option of evidencia.options){
+          if (option.selected) {
+            writer.addQuad(
+              namedNode(prefix1.concat(nm).replace(/ /gi, '_')),
+              namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasEvidence'),
+              namedNode(option.value.replace(/ /gi, '_'))
+            );
+          }
+      }
+    }
+  
+    writer.end((error, result) => saveOntologyAndReturn(result));
+}
+
+function saveOntologyAndReturn(ontology){
+    chrome.runtime.sendMessage({from:"addcompetence", message: ontology});
+    window.location.href = "./competencies.html";
+  }
+
+function addToStore(quad){
+    store.add(quad);
+}
+
+/***/ }),
+
 /***/ "?b1a3":
 /*!**********************!*\
   !*** util (ignored) ***!
@@ -10717,453 +11207,39 @@ function config (name) {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
-/*!***************************!*\
-  !*** ./src/background.js ***!
-  \***************************/
+"use strict";
+/*!****************************!*\
+  !*** ./src/studentview.js ***!
+  \****************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _compfunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./compfunctions */ "./src/compfunctions.js");
 // Imports
 var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
-var ontologia;
 const N3 = __webpack_require__(/*! n3 */ "./node_modules/n3/src/index.js");
-const store = new N3.Store();
-const { DataFactory } = N3;
-const { namedNode, literal, defaultGraph, quad } = DataFactory;
-const myQuad = quad(
-  namedNode('https://ruben.verborgh.org/profile/#me'),
-  namedNode('http://xmlns.com/foaf/0.1/givenName'),
-  literal('Ruben', 'en'),
-  defaultGraph(),
-);
+
 
 // Variaveis
-var courseId = '';
-var ontology;
-var tabid;
+var toInsert = document.createElement("div");
+document.body.appendChild(toInsert);
 
-// Google API
-var head = document.getElementsByTagName('head')[0];
-var script = document.createElement('script');
-script.type = 'text/javascript';
-script.src = "https://apis.google.com/js/client.js";
-head.appendChild(script);
-// Espera carregamento GAPI
-window.onload = function () {
-  setTimeout(function () {
-    gapi.load('client:auth2', onGAPILoad);
-  }, 500);
-};
+chrome.runtime.sendMessage({from:"studentsview",message:"hi!"});
 
-
-const API_KEY = 'AIzaSyD0S0AnY3gPu5xkeMWYbZpftsh_BOndE5s';
-const DISCOVERY_DOCS = ["https://classroom.googleapis.com/$discovery/rest?version=v1"];
-
-// Inicia a API do Classroom (Depois de carregar o GAPI)
-function onGAPILoad() {
-  gapi.client.init({
-    apiKey: API_KEY,
-    discoveryDocs: DISCOVERY_DOCS,
-  }).then(function () {
-
-  }, function(error) {
-    console.log('error', error);
-  });
-}
-
-// Lista os estudantes
-function getStudents(tabid) {
-  var students;
-  chrome.identity.getAuthToken({interactive: true}, function(token) {
-    gapi.auth.setToken({
-      'access_token': token,
-    });
-
-    gapi.client.classroom.courses.students.list({courseId: courseId}).then(function(response) {
-    students = response.result.students;
-    chrome.extension.sendMessage(tabid,students);
-    });
-  })
-}
-
-// Lista os cursos disponiveis
-function getCourses(tabid) {
-  var courses;
-  chrome.identity.getAuthToken({interactive: true}, function(token) {
-    gapi.auth.setToken({
-      'access_token': token,
-    });
-
-
-    if(gapi.client.classroom == null){
-      getCourses(tabid);
-      return;
-    }
-
-    gapi.client.classroom.courses.list().then(function(response) {
-    courses = response.result.courses;
-    chrome.extension.sendMessage(tabid,courses);
-    });
-  })
-}
-
-window.addEventListener('error', function(event) { chrome.extension.sendMessage(tabid,'error'); });
-
-// Mensageiro para as paginas
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-
-  if (message.from == "students"){
-    if(message.message == 'hi!'){
-      var tabid = sender.id;
-      getStudents(tabid);
-    }
-    else{
-      var tabid = sender.id;
-      getOntology(tabid);
-    }
-
-  }
-  
-  else if(message.from == 'studentsview'){
-      var tabid = sender.id;
-      getStudentOntology(tabid);
-      
-  }
-
-  else if(message.from == "popup"){
-      if (message.message == "hi!"){
-        var tabid = sender.id;
-        getCourses(tabid);
-      }
-      else{
-        courseId = message.message;
-        tabid = sender.id;
-        testCourseWorks(tabid);
-      }
-  }
-
-  else if(message.from == "competencies"){
-    if (message.message == "hi!"){
-      var tabid = sender.id;
-      getOntology(tabid);
-    }
-    else{
-      editCompId = message.message;
-    }
-  }
-
-  else if(message.from == "addcompetence"){
-    if (message.message == "hi!"){
-      var tabid = sender.id;
-      getOntology(tabid);
-    }
-    else{
-      chrome.storage.local.set({[courseId]: message.message});
-    }
-  }
-  else if(message.from == "editcompetence"){
-    if (message.message == "hi!"){
-      var tabid = sender.id;
-      chrome.extension.sendMessage(tabid,editCompId);
-      getOntology(tabid);
-    }
-    else{
-      chrome.storage.local.set({[courseId]: message.message});
-    }
-  }
-  
+    const parser = new N3.Parser();
+    parser.parse(
+      message,
+      (error, quad, prefixes) => {
+        if (quad)
+          (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.quadType)(quad);
+        else
+          (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.displayCompetencias)('studentview');
+      });
 });
-
-function getOntology(tabid){
-
-  chrome.storage.local.get([courseId], function(data) {
-
-    if(data[courseId] == null){
-      ontology = initOntology;
-    }
-    else{
-      ontology = data[courseId];
-    }
-
-    const parser = new N3.Parser();
-    parser.parse(
-      ontology
-      ,
-      (error, quad, prefixes) => {
-
-        if (quad){
-          store.add(quad);
-        }
-        
-        else{
-          getCourseWorks(tabid);
-        }
-      });
-
-  });
-  
-}
-
-function getStudentOntology(tabid){
-
-  chrome.storage.local.get([courseId], function(data) {
-
-    if(data[courseId] == null){
-      ontology = initOntology;
-    }
-    else{
-      ontology = data[courseId];
-    }
-
-    const parser = new N3.Parser();
-    parser.parse(
-      ontology
-      ,
-      (error, quad, prefixes) => {
-
-        if (quad){
-          store.add(quad);
-        }
-        
-        else{
-          sendOntology(tabid);
-        }
-      });
-
-  });
-  
-}
-
-// Adiciona atividades do Classroom à ontologia, antes de enviar para outra página (obs: ignorará pré-existentes)
-function getCourseWorks(tabid) {
-  
-  chrome.identity.getAuthToken({interactive: true}, function(token) {
-    gapi.auth.setToken({
-      'access_token': token,
-    });
-
-    gapi.client.classroom.courses.courseWork.list({courseId: courseId}).then(function(response) {
-
-      var courseWorks = response.result.courseWork;
-      var prefix1 = "http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#";
-
-      
-      for(var i = 0; i < courseWorks.length; i++){
-        store.addQuad(
-          namedNode(prefix1.concat(courseWorks[i].title.replace(/ /gi, '_'))),
-          namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-          namedNode(prefix1.concat('Evidence'))
-        );        
-        store.addQuad(
-          namedNode(prefix1.concat(courseWorks[i].title.replace(/ /gi, '_'))),
-          namedNode(prefix1.concat('source')),
-          namedNode(prefix1.concat(courseWorks[i].alternateLink))
-        );       
-      }
-
-        sendOntology(tabid);
-
-      });
-  })
-
-}
-
-function testCourseWorks(){
-  chrome.identity.getAuthToken({interactive: true}, function(token) {
-    gapi.auth.setToken({
-      'access_token': token,
-    });
-
-    gapi.client.classroom.courses.courseWork.list({courseId: courseId}).then(function(response) {
-        chrome.extension.sendMessage(tabid,'success');
-      });
-  })
-}
-
-// Escreve toda a ontologia em uma string para enviar as outras abas
-function sendOntology(tabid){
-
-  var message;
-
-  const writer = new N3.Writer();
-  
-  for (const quad of store){
-    writer.addQuad(
-      quad
-    );
-    store.delete(quad);
-  }
-
-  writer.end((error, result) => message = result);
-
-  chrome.extension.sendMessage(tabid,message);
-
-}
-
-
-
-var initOntology =
-`@prefix : <http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#> .
-      @prefix owl: <http://www.w3.org/2002/07/owl#> .
-      @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-      @prefix xml: <http://www.w3.org/XML/1998/namespace> .
-      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-      @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-      @base <http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies> .
-      
-      <http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies> rdf:type owl:Ontology .
-      
-      #################################################################
-      #    Object Properties
-      #################################################################
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasEvidence
-      :hasEvidence rdf:type owl:ObjectProperty ;
-                  rdfs:subPropertyOf owl:topObjectProperty ;
-                  rdfs:domain :Competency ;
-                  rdfs:range :Evidence .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasProficiencyLevel
-      :hasProficiencyLevel rdf:type owl:ObjectProperty ;
-                          rdfs:domain :Competency ;
-                          rdfs:range :Proficiency_Level .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf
-      :isComposedOf rdf:type owl:ObjectProperty ;
-                    rdfs:subPropertyOf owl:topObjectProperty ;
-                    owl:inverseOf :subsumes ;
-                    rdfs:domain :Competency ;
-                    rdfs:range :Competency .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo
-      :isSimilarTo rdf:type owl:ObjectProperty ,
-                            owl:SymmetricProperty ;
-                  rdfs:domain :Competency ;
-                  rdfs:range :Competency .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires
-      :requires rdf:type owl:ObjectProperty ;
-                rdfs:subPropertyOf owl:topObjectProperty ;
-                rdfs:domain :Competency ;
-                rdfs:range :Competency .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes
-      :subsumes rdf:type owl:ObjectProperty ;
-                rdfs:domain :Competency ;
-                rdfs:range :Competency .
-      
-      
-      #################################################################
-      #    Data properties
-      #################################################################
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasKnowledge
-      :hasKnowledge rdf:type owl:DatatypeProperty ;
-                    rdfs:domain :Competency ;
-                    rdfs:range xsd:string .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#hasSkill
-      :hasSkill rdf:type owl:DatatypeProperty ;
-                rdfs:domain :Competency ;
-                rdfs:range xsd:string .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#name
-      :name rdf:type owl:DatatypeProperty ;
-            rdfs:subPropertyOf owl:topDataProperty ;
-            rdfs:domain :Competency ;
-            rdfs:range xsd:string .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#source
-      :source rdf:type owl:DatatypeProperty ;
-              rdfs:subPropertyOf owl:topDataProperty ;
-              rdfs:domain :Evidence ;
-              rdfs:range xsd:string .
-      
-      
-      #################################################################
-      #    Classes
-      #################################################################
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Competency
-      :Competency rdf:type owl:Class .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Evidence
-      :Evidence rdf:type owl:Class .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Proficiency_Level
-      :Proficiency_Level rdf:type owl:Class ;
-                        owl:equivalentClass [ rdf:type owl:Class ;
-                                              owl:oneOf ( :Advanced
-                                                          :Beginner
-                                                          :Expert
-                                                          :Intermediate
-                                                        )
-                                            ] .
-      
-      
-      #################################################################
-      #    Individuals
-      #################################################################
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Adicionar_propriedades_de_objeto_a_uma_classe
-      :Adicionar_propriedades_de_objeto_a_uma_classe rdf:type owl:NamedIndividual ,
-                                                              :Competency ;
-                                                    :hasProficiencyLevel :Advanced ;
-                                                    :subsumes :Fazer_ontologias_no_protege ;
-                                                    :hasKnowledge "Ontologias" ;
-                                                    :name "Adicionar propriedades de objeto a uma classe" .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Advanced
-      :Advanced rdf:type owl:NamedIndividual ,
-                        :Proficiency_Level .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Atividade_1
-      :Atividade_1 rdf:type owl:NamedIndividual ,
-                            :Evidence ;
-                  :source "example" .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Beginner
-      :Beginner rdf:type owl:NamedIndividual ,
-                        :Proficiency_Level .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Expert
-      :Expert rdf:type owl:NamedIndividual ,
-                      :Proficiency_Level .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Fazer_ontologias_no_protege
-      :Fazer_ontologias_no_protege rdf:type owl:NamedIndividual ,
-                                            :Competency ;
-                                  :hasEvidence :Atividade_1 ;
-                                  :hasProficiencyLevel :Intermediate ;
-                                  :isComposedOf :Adicionar_propriedades_de_objeto_a_uma_classe ;
-                                  :hasKnowledge "Ontologias" ;
-                                  :hasSkill "Criar ontologias" ;
-                                  :name "Fazer ontologias no protege" .
-      
-      
-      ###  http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#Intermediate
-      :Intermediate rdf:type owl:NamedIndividual ,
-                            :Proficiency_Level .
-      
-      
-      ###  Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi
-      `
+    
 })();
 
 /******/ })()
 ;
-//# sourceMappingURL=background.js.map
+//# sourceMappingURL=studentview.js.map

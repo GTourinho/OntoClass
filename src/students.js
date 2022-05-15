@@ -18,9 +18,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         students = message;
         for(var i = 0; i < students.length; i++) {
             var opt = students[i].profile.name.fullName;
+            var userId = students[i].userId;
             var el = document.createElement("option");
             el.textContent = opt;
-            el.value = opt;
+            el.value = userId;
             select.appendChild(el);
         }
         count += 1;
@@ -39,6 +40,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
 
 });
+
+document.getElementById('salvar').style.marginTop = '10px';
+document.getElementById('salvar').style.width = '50%';
+document.getElementById('salvar').style.marginLeft = '25%';
+document.getElementById('salvar').style.marginRight = '25%';
+
+document.getElementById('estud').style.marginBottom = '10px';
 
 document.getElementById('salvar').addEventListener('click', () => {
     var profics = document.getElementsByTagName('select');

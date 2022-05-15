@@ -10925,6 +10925,9 @@ function displayCompetencias(type){
         if(type == 'selectprofic'){
             comp.appendChild(createSelectProfic(node));
         }
+        else if(type == 'studentview'){
+            comp.appendChild(studentProficText(node));
+        }
         else{
             comp.appendChild(editButton(node));
         }
@@ -10963,6 +10966,28 @@ function displayCompetencias(type){
         autoSelectProfic();
     }
           
+}
+
+function studentProficText(node){
+
+    var profic = document.createElement('text');
+
+    chrome.identity.getProfileUserInfo({accountStatus: 'ANY'}, function(userinfo){
+        
+        chrome.storage.local.get([userinfo.id], function(data) {
+            
+            var proficiencia;
+            proficiencia = data[userinfo.id][node.model.id];
+            profic.textContent = proficiencia;
+
+            profic.style.marginLeft = '5px';
+            profic.setAttribute('id', node.model.id);
+        });
+       
+      });
+
+ 
+    return profic;
 }
 
 function autoSelectProfic(){

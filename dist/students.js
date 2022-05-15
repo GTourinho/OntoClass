@@ -10825,6 +10825,9 @@ function displayCompetencias(type){
         if(type == 'selectprofic'){
             comp.appendChild(createSelectProfic(node));
         }
+        else if(type == 'studentview'){
+            comp.appendChild(studentProficText(node));
+        }
         else{
             comp.appendChild(editButton(node));
         }
@@ -10863,6 +10866,28 @@ function displayCompetencias(type){
         autoSelectProfic();
     }
           
+}
+
+function studentProficText(node){
+
+    var profic = document.createElement('text');
+
+    chrome.identity.getProfileUserInfo({accountStatus: 'ANY'}, function(userinfo){
+        
+        chrome.storage.local.get([userinfo.id], function(data) {
+            
+            var proficiencia;
+            proficiencia = data[userinfo.id][node.model.id];
+            profic.textContent = proficiencia;
+
+            profic.style.marginLeft = '5px';
+            profic.setAttribute('id', node.model.id);
+        });
+       
+      });
+
+ 
+    return profic;
 }
 
 function autoSelectProfic(){
@@ -11210,9 +11235,10 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         students = message;
         for(var i = 0; i < students.length; i++) {
             var opt = students[i].profile.name.fullName;
+            var userId = students[i].userId;
             var el = document.createElement("option");
             el.textContent = opt;
-            el.value = opt;
+            el.value = userId;
             select.appendChild(el);
         }
         count += 1;
@@ -11231,6 +11257,13 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     }
 
 });
+
+document.getElementById('salvar').style.marginTop = '10px';
+document.getElementById('salvar').style.width = '50%';
+document.getElementById('salvar').style.marginLeft = '25%';
+document.getElementById('salvar').style.marginRight = '25%';
+
+document.getElementById('estud').style.marginBottom = '10px';
 
 document.getElementById('salvar').addEventListener('click', () => {
     var profics = document.getElementsByTagName('select');

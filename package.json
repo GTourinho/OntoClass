@@ -72,6 +72,10 @@
             {
                 "name": "compfunctions",
                 "src": "./src/compfunctions.js"
+            },
+            {
+                "name": "studentview",
+                "src": "./src/studentview.js"
             }
         ]
     },

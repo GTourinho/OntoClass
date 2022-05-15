@@ -15,6 +15,7 @@ const myQuad = quad(
 // Variaveis
 var courseId = '';
 var ontology;
+var tabid;
 
 // Google API
 var head = document.getElementsByTagName('head')[0];
@@ -39,7 +40,7 @@ function onGAPILoad() {
     apiKey: API_KEY,
     discoveryDocs: DISCOVERY_DOCS,
   }).then(function () {
-    console.log('gapi loaded')
+
   }, function(error) {
     console.log('error', error);
   });
@@ -68,6 +69,7 @@ function getCourses(tabid) {
       'access_token': token,
     });
 
+
     if(gapi.client.classroom == null){
       getCourses(tabid);
       return;
@@ -80,17 +82,27 @@ function getCourses(tabid) {
   })
 }
 
+window.addEventListener('error', function(event) { chrome.extension.sendMessage(tabid,'error'); });
+
 // Mensageiro para as paginas
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 
   if (message.from == "students"){
-    if (message.message == "hi!"){
+    if(message.message == 'hi!'){
       var tabid = sender.id;
       getStudents(tabid);
     }
     else{
+      var tabid = sender.id;
       getOntology(tabid);
     }
+
+  }
+  
+  else if(message.from == 'studentsview'){
+      var tabid = sender.id;
+      getStudentOntology(tabid);
+      
   }
 
   else if(message.from == "popup"){
@@ -100,6 +112,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
       }
       else{
         courseId = message.message;
+        tabid = sender.id;
+        testCourseWorks(tabid);
       }
   }
 
@@ -165,6 +179,36 @@ function getOntology(tabid){
   
 }
 
+function getStudentOntology(tabid){
+
+  chrome.storage.local.get([courseId], function(data) {
+
+    if(data[courseId] == null){
+      ontology = initOntology;
+    }
+    else{
+      ontology = data[courseId];
+    }
+
+    const parser = new N3.Parser();
+    parser.parse(
+      ontology
+      ,
+      (error, quad, prefixes) => {
+
+        if (quad){
+          store.add(quad);
+        }
+        
+        else{
+          sendOntology(tabid);
+        }
+      });
+
+  });
+  
+}
+
 // Adiciona atividades do Classroom à ontologia, antes de enviar para outra página (obs: ignorará pré-existentes)
 function getCourseWorks(tabid) {
   
@@ -192,11 +236,23 @@ function getCourseWorks(tabid) {
         );       
       }
 
-      sendOntology(tabid);
+        sendOntology(tabid);
 
       });
   })
 
+}
+
+function testCourseWorks(){
+  chrome.identity.getAuthToken({interactive: true}, function(token) {
+    gapi.auth.setToken({
+      'access_token': token,
+    });
+
+    gapi.client.classroom.courses.courseWork.list({courseId: courseId}).then(function(response) {
+        chrome.extension.sendMessage(tabid,'success');
+      });
+  })
 }
 
 // Escreve toda a ontologia em uma string para enviar as outras abas
@@ -218,6 +274,8 @@ function sendOntology(tabid){
   chrome.extension.sendMessage(tabid,message);
 
 }
+
+
 
 var initOntology =
 `@prefix : <http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#> .
