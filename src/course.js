@@ -4,6 +4,12 @@ document.getElementById('comp').addEventListener('click', () => {
 
 document.getElementById('comp').style.marginBottom = '10px';
 
-  document.getElementById('alun').addEventListener('click', () => {
-    window.location.href = "./students.html";
-  });
+document.getElementById('alun').style.marginBottom = '10px';
+
+document.getElementById('alun').addEventListener('click', () => {
+  window.location.href = "./students.html";
+});
+
+document.getElementById('grafo').addEventListener('click', () => {
+  window.location.href = "./graph.html";
+});

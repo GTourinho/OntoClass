@@ -1,6 +1,5 @@
 // Imports
 var TreeModel = require('tree-model');
-var ontologia;
 const N3 = require('n3');
 const store = new N3.Store();
 const { DataFactory } = N3;
@@ -150,6 +149,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function getOntology(tabid){
+
+  
 
   chrome.storage.local.get([courseId], function(data) {
 

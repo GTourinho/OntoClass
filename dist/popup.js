@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
         count += 1;
     }
     else if(message == 'error'){
-        window.location.href = "./studentview.html";
+        window.location.href = "./studentchoice.html";
     }
     else{
         window.location.href = "./course.html";

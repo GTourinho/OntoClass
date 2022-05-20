@@ -76,11 +76,28 @@
             {
                 "name": "studentview",
                 "src": "./src/studentview.js"
+            },
+            {
+                "name": "graph",
+                "src": "./src/graph.js"
+            },
+            {
+                "name": "studentchoice",
+                "src": "./src/studentchoice.js"
+            },
+            {
+                "name": "studentgraph",
+                "src": "./src/studentgraph.js"
             }
         ]
     },
     "dependencies": {
+        "@frogcat/ttl2jsonld": "^0.0.8",
+        "buffer": "^6.0.3",
+        "d3": "^3.5.17",
         "n3": "^1.16.1",
-        "tree-model": "^1.0.7"
+        "sigma": "^2.3.0",
+        "tree-model": "^1.0.7",
+        "url": "^0.11.0"
     }
 }

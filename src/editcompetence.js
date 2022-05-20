@@ -7,6 +7,12 @@ const N3 = require('n3');
 const store = new N3.Store();
 const { DataFactory } = N3;
 const { namedNode, literal, defaultGraph, quad } = DataFactory;
+const myQuad = quad(
+  namedNode('https://ruben.verborgh.org/profile/#me'),
+  namedNode('http://xmlns.com/foaf/0.1/givenName'),
+  literal('Ruben', 'en'),
+  defaultGraph(),
+);
 var tree = new TreeModel();
 var competencias = tree.parse({name: ''});
 var evidences = [];
@@ -360,17 +366,20 @@ function getCompetenciesFromOntology(ontology){
     var nm = document.getElementById('nome').value
 
     for (const quad of store.match(namedNode(editComp.model.id), null, null)){
-        store.delete(quad);
+      store.delete(quad);
+      if(quad.predicate.id == 'http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'){
+        store.addQuad(namedNode(prefix1.concat(nm).replace(/ /gi, '_')), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isComposedOf'), namedNode(quad.object.id));
+      }
     }
 
     for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'), namedNode(editComp.model.id))){
-      store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
       store.delete(quad);
+      store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#requires'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
     }
 
     for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'), namedNode(editComp.model.id))){
-      store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
       store.delete(quad);
+      store.addQuad(namedNode(quad.subject.id), namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#subsumes'), namedNode(prefix1.concat(nm).replace(/ /gi, '_')));
     }
 
     for (const quad of store.match(null, namedNode('http://www.semanticweb.org/gabriel/ontologies/2022/4/competencies#isSimilarTo'), namedNode(editComp.model.id))){

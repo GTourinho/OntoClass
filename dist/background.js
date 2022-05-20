@@ -10724,7 +10724,6 @@ var __webpack_exports__ = {};
   \***************************/
 // Imports
 var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
-var ontologia;
 const N3 = __webpack_require__(/*! n3 */ "./node_modules/n3/src/index.js");
 const store = new N3.Store();
 const { DataFactory } = N3;
@@ -10874,6 +10873,8 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function getOntology(tabid){
+
+  
 
   chrome.storage.local.get([courseId], function(data) {
 

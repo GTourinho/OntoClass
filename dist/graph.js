@@ -21039,76 +21039,35 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
-/*!*************************!*\
-  !*** ./src/students.js ***!
-  \*************************/
+/*!**********************!*\
+  !*** ./src/graph.js ***!
+  \**********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _compfunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./compfunctions */ "./src/compfunctions.js");
 // Imports
-var TreeModel = __webpack_require__(/*! tree-model */ "./node_modules/tree-model/index.js");
 const N3 = __webpack_require__(/*! n3 */ "./node_modules/n3/src/index.js");
 
 
 // Variaveis
-var toInsert = document.createElement("div");
-document.body.appendChild(toInsert);
-var select = document.getElementById("estud");
-var students;
-var count = 0;
 
-chrome.runtime.sendMessage({from:"students",message:"hi!"});
+chrome.runtime.sendMessage({from:"competencies",message:"hi!"});
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-
-    if(count == 0){
-        students = message;
-        for(var i = 0; i < students.length; i++) {
-            var opt = students[i].profile.name.fullName;
-            var userId = students[i].userId;
-            var el = document.createElement("option");
-            el.textContent = opt;
-            el.value = userId;
-            select.appendChild(el);
-        }
-        count += 1;
-        chrome.runtime.sendMessage({from:"students",message:"comp!"});
-    }
-    else{
-        const parser = new N3.Parser();
-        parser.parse(
-          message,
-          (error, quad, prefixes) => {
-            if (quad)
-              (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.quadType)(quad);
-            else
-              (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.displayCompetencias)('selectprofic');
-          });
-    }
-
+  const parser = new N3.Parser();
+  parser.parse(
+    message,
+    (error, quad, prefixes) => {
+      if (quad)
+        (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.quadType)(quad);
+      else
+        (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.displayGraph)();
+    });
+    
 });
 
-document.getElementById('salvar').style.marginTop = '10px';
-document.getElementById('salvar').style.width = '50%';
-document.getElementById('salvar').style.marginLeft = '25%';
-document.getElementById('salvar').style.marginRight = '25%';
 
-document.getElementById('estud').style.marginBottom = '10px';
-
-document.getElementById('salvar').addEventListener('click', () => {
-    var profics = document.getElementsByTagName('select');
-    var student = {id: profics[0].value};
-    for(var profic = 1; profic < profics.length; profic++){
-        student[profics[profic].id] = (profics[profic].value);
-    }
-    chrome.storage.local.set({[student.id]: student});
-  });
-
-document.getElementById('estud').onchange = function() {
-    (0,_compfunctions__WEBPACK_IMPORTED_MODULE_0__.autoSelectProfic)();
-}
-    
 })();
 
 /******/ })()
 ;
-//# sourceMappingURL=students.js.map
+//# sourceMappingURL=graph.js.map
