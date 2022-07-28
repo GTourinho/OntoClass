@@ -12,7 +12,7 @@ Then, install Extension-Cli
 
 Then install all packages used in the project
 
-<code> npm i tree-model </code>
+<code> npm i </code>
 
 To compile the project, run the command below, in the root folder of the project (e.g C:\Users\"Username"\OntoCompAPI)
 
